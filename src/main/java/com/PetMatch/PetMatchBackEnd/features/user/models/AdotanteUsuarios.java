@@ -16,13 +16,13 @@ public class AdotanteUsuarios {
     private UUID id_adotante;
 
     @Column
-    private String endereco_adotante;
+    private String nome_adotante;
 
     @Column(unique = true, nullable = false)
     private String cpf_adotante;
 
     @Column
-    private String telefone_adotante;
+    private String endereco_adotante;
 
     @Column(nullable = false)
     private String celular_adotante;
@@ -34,10 +34,10 @@ public class AdotanteUsuarios {
     private String senha_adotante;
 
     @Column
-    private String nome_adotante;
+    private String descricao_outros_animais;
 
     @Column
-    private String descricao_outros_animais;
+    private String preferencia;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

@@ -1,5 +1,6 @@
-package com.PetMatch.PetMatchBackEnd.features.user.models;
+package com.PetMatch.PetMatchBackEnd.features.user.models.Ong;
 
+import com.PetMatch.PetMatchBackEnd.features.user.models.UserLevel;
 import jakarta.persistence.*;
 import lombok.Data;
 
