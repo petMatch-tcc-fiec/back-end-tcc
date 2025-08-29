@@ -13,26 +13,26 @@ public class OngUsuarios {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID id_ong;
+    @Column(updatable = false, nullable = false, name = "id_ong")
+    private UUID idOng;
 
-    @Column
-    private String endereco_ong;
+    @Column(name = "endereco_ong")
+    private String enderecoOng;
 
-    @Column
-    private String telefone_ong;
+    @Column(name = "telefone_ong")
+    private String telefoneOng;
 
-    @Column
-    private String celular_ong;
+    @Column(name = "celular_ong")
+    private String celularOng;
 
-    @Column
-    private String cnpj_ong;
+    @Column(name = "cnpj_ong")
+    private String cnpjOng;
 
-    @Column(unique = true, nullable = false)
-    private String email_ong;
+    @Column(unique = true, nullable = false, name = "email_ong")
+    private String emailOng;
 
-    @Column(nullable = false)
-    private String senha_ong;
+    @Column(nullable = false, name = "senha_ong")
+    private String senhaOng;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

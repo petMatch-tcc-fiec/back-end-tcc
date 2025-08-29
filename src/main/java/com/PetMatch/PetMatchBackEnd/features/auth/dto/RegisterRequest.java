@@ -11,7 +11,7 @@ public class RegisterRequest {
     private String celular;
     private String email;
     private String senha;
-    private String descricao_outros_animais;
+    private String descricaoOutrosAnimais;
     private String preferencia;
     private UserLevel userLevel = UserLevel.USER;
 }

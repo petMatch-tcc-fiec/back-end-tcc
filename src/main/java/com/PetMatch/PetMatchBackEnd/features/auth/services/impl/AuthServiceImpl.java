@@ -21,13 +21,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AdotanteUsuarios register(RegisterRequest request) {
         AdotanteUsuarios adotanteUsuarios = new AdotanteUsuarios();
-        adotanteUsuarios.setNome_adotante(request.getNome());
-        adotanteUsuarios.setCpf_adotante(request.getCpf());
-        adotanteUsuarios.setEndereco_adotante(request.getEndereco());
-        adotanteUsuarios.setCelular_adotante(request.getCelular());
-        adotanteUsuarios.setEmail_adotante(request.getEmail());
-        adotanteUsuarios.setSenha_adotante(request.getSenha());
-        adotanteUsuarios.setDescricao_outros_animais(request.getDescricao_outros_animais());
+        adotanteUsuarios.setNomeAdotante(request.getNome());
+        adotanteUsuarios.setCpfAdotante(request.getCpf());
+        adotanteUsuarios.setEnderecoAdotante(request.getEndereco());
+        adotanteUsuarios.setCelularAdotante(request.getCelular());
+        adotanteUsuarios.setEmail(request.getEmail());
+        adotanteUsuarios.setSenhaAdotante(request.getSenha());
+        adotanteUsuarios.setDescricaoOutrosAnimais(request.getDescricaoOutrosAnimais());
         adotanteUsuarios.setPreferencia(request.getPreferencia());
 
         return adotanteUsuariosService.save(adotanteUsuarios);
@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AdotanteUsuarios login(LoginRequest request) {
         return adotanteUsuariosService.findByEmail(request.getEmail())
-                .filter(adotanteUsuarios -> PasswordEncryptor.matches(request.getSenha(), adotanteUsuarios.getSenha_adotante()))
+                .filter(adotanteUsuarios -> PasswordEncryptor.matches(request.getSenha(), adotanteUsuarios.getSenhaAdotante()))
                 .orElseThrow(() -> new BadCredentialsException("Email ou senha inválidos."));
     }
 }

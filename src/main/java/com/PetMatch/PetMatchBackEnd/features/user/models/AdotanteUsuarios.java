@@ -2,39 +2,43 @@ package com.PetMatch.PetMatchBackEnd.features.user.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @Entity
 @Table(name = "AdotanteUsuarios")
-public class AdotanteUsuarios {
+public class AdotanteUsuarios implements UserDetails{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID id_adotante;
+    @Column(updatable = false, nullable = false, name = "id_adotante")
+    private UUID idAdotante;
 
-    @Column
-    private String nome_adotante;
+    @Column(name = "nome_adotante")
+    private String nomeAdotante;
 
-    @Column(unique = true, nullable = false)
-    private String cpf_adotante;
+    @Column(unique = true, nullable = false, name = "cpf_adotante")
+    private String cpfAdotante;
 
-    @Column
-    private String endereco_adotante;
+    @Column(name = "endereco_adotante")
+    private String enderecoAdotante;
 
-    @Column(nullable = false)
-    private String celular_adotante;
+    @Column(nullable = false, name = "celular_adotante")
+    private String celularAdotante;
 
-    @Column(unique = true, nullable = false)
-    private String email_adotante;
+    @Column(unique = true, nullable = false, name = "email_adotante")
+    private String email;
 
-    @Column(nullable = false)
-    private String senha_adotante;
+    @Column(nullable = false, name = "senha_adotante")
+    private String senhaAdotante;
 
-    @Column
-    private String descricao_outros_animais;
+    @Column(name = "descricao_outros_animais")
+    private String descricaoOutrosAnimais;
 
     @Column
     private String preferencia;
@@ -42,5 +46,18 @@ public class AdotanteUsuarios {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserLevel userLevel = UserLevel.USER;
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(userLevel);
+    }
+
+    @Override
+    public String getPassword() {
+        return senhaAdotante;
+    }
+
+    public String getUsername() {
+        return email;
+    }
 
 }

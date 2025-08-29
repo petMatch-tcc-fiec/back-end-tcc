@@ -1,9 +1,11 @@
 package com.PetMatch.PetMatchBackEnd.features.auth.controllers;
 
 import com.PetMatch.PetMatchBackEnd.features.auth.dto.LoginRequest;
+import com.PetMatch.PetMatchBackEnd.features.auth.dto.LoginResponse;
 import com.PetMatch.PetMatchBackEnd.features.auth.dto.RegisterRequest;
 import com.PetMatch.PetMatchBackEnd.features.auth.services.AuthService;
 import com.PetMatch.PetMatchBackEnd.features.user.models.AdotanteUsuarios;
+import com.PetMatch.PetMatchBackEnd.utils.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtService jwtService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtService jwtService) {
         this.authService = authService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
@@ -28,8 +32,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AdotanteUsuarios> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         AdotanteUsuarios loggedInUser = authService.login(request);
-        return new ResponseEntity<>(loggedInUser, HttpStatus.OK);
+        String jwtToken = this.jwtService.generateToken(loggedInUser);
+        LoginResponse response = new LoginResponse();
+        response.setToken(jwtToken);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

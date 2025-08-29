@@ -4,6 +4,9 @@ import com.PetMatch.PetMatchBackEnd.features.user.models.AdotanteUsuarios;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.AdotanteUsuariosRepository;
 import com.PetMatch.PetMatchBackEnd.features.user.services.AdotanteUsuariosService;
 import com.PetMatch.PetMatchBackEnd.utils.PasswordEncryptor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class AdotanteUsuariosServiceImpl implements AdotanteUsuariosService {
+public class AdotanteUsuariosServiceImpl implements AdotanteUsuariosService, UserDetailsService {
 
     private final AdotanteUsuariosRepository adotanteUsuariosRepository;
 
@@ -21,8 +24,8 @@ public class AdotanteUsuariosServiceImpl implements AdotanteUsuariosService {
 
     @Override
     public AdotanteUsuarios save(AdotanteUsuarios adotanteUsuarios) {
-        if (adotanteUsuarios.getSenha_adotante() != null) {
-            adotanteUsuarios.setSenha_adotante(PasswordEncryptor.encrypt(adotanteUsuarios.getSenha_adotante()));
+        if (adotanteUsuarios.getSenhaAdotante() != null) {
+            adotanteUsuarios.setSenhaAdotante(PasswordEncryptor.encrypt(adotanteUsuarios.getSenhaAdotante()));
         }
         return adotanteUsuariosRepository.save(adotanteUsuarios);
     }
@@ -45,17 +48,17 @@ public class AdotanteUsuariosServiceImpl implements AdotanteUsuariosService {
     @Override
     public AdotanteUsuarios update(UUID id, AdotanteUsuarios updatedUser) {
         return adotanteUsuariosRepository.findById(id).map(adotanteUsuarios -> {
-            adotanteUsuarios.setNome_adotante(updatedUser.getNome_adotante());
-            adotanteUsuarios.setCpf_adotante(updatedUser.getCpf_adotante());
-            adotanteUsuarios.setEndereco_adotante(updatedUser.getEndereco_adotante());
-            adotanteUsuarios.setCelular_adotante(updatedUser.getCelular_adotante());
-            adotanteUsuarios.setEmail_adotante(updatedUser.getEmail_adotante());
-            adotanteUsuarios.setSenha_adotante(updatedUser.getSenha_adotante());
-            adotanteUsuarios.setDescricao_outros_animais(updatedUser.getDescricao_outros_animais());
+            adotanteUsuarios.setNomeAdotante(updatedUser.getNomeAdotante());
+            adotanteUsuarios.setCpfAdotante(updatedUser.getCpfAdotante());
+            adotanteUsuarios.setEnderecoAdotante(updatedUser.getEnderecoAdotante());
+            adotanteUsuarios.setCelularAdotante(updatedUser.getCelularAdotante());
+            adotanteUsuarios.setEmail(updatedUser.getEmail());
+            adotanteUsuarios.setSenhaAdotante(updatedUser.getSenhaAdotante());
+            adotanteUsuarios.setDescricaoOutrosAnimais(updatedUser.getDescricaoOutrosAnimais());
             adotanteUsuarios.setPreferencia(updatedUser.getPreferencia());
 
-            if (updatedUser.getSenha_adotante() != null && !updatedUser.getSenha_adotante().isEmpty()) {
-                adotanteUsuarios.setSenha_adotante(PasswordEncryptor.encrypt(updatedUser.getSenha_adotante()));
+            if (updatedUser.getSenhaAdotante() != null && !updatedUser.getSenhaAdotante().isEmpty()) {
+                adotanteUsuarios.setSenhaAdotante(PasswordEncryptor.encrypt(updatedUser.getSenhaAdotante()));
             }
             return adotanteUsuariosRepository.save(adotanteUsuarios);
         }).orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + id));
@@ -64,5 +67,9 @@ public class AdotanteUsuariosServiceImpl implements AdotanteUsuariosService {
     @Override
     public void deleteById(UUID id) {
         adotanteUsuariosRepository.deleteById(id);
+    }
+
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return adotanteUsuariosRepository.findByEmail(email).orElseThrow();
     }
 }

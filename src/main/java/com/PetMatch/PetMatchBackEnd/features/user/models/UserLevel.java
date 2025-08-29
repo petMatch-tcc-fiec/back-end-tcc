@@ -1,7 +1,14 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
-public enum UserLevel {
+import org.springframework.security.core.GrantedAuthority;
+
+public enum UserLevel implements GrantedAuthority {
     USER,
     ADMIN,
-    ONG
+    ONG;
+
+    @Override
+    public String getAuthority() {
+        return this.name();
+    }
 }
