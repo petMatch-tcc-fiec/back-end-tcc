@@ -4,7 +4,7 @@ import com.PetMatch.PetMatchBackEnd.features.user.models.UserLevel;
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class RegisterRequestAdotante {
     private String nome;
     private String cpf;
     private String endereco;

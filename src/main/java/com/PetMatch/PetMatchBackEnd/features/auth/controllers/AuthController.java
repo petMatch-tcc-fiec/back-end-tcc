@@ -2,7 +2,7 @@ package com.PetMatch.PetMatchBackEnd.features.auth.controllers;
 
 import com.PetMatch.PetMatchBackEnd.features.auth.dto.LoginRequest;
 import com.PetMatch.PetMatchBackEnd.features.auth.dto.LoginResponse;
-import com.PetMatch.PetMatchBackEnd.features.auth.dto.RegisterRequest;
+import com.PetMatch.PetMatchBackEnd.features.auth.dto.RegisterRequestAdotante;
 import com.PetMatch.PetMatchBackEnd.features.auth.services.AuthService;
 import com.PetMatch.PetMatchBackEnd.features.user.models.AdotanteUsuarios;
 import com.PetMatch.PetMatchBackEnd.utils.JwtService;
@@ -26,7 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AdotanteUsuarios> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AdotanteUsuarios> register(@RequestBody RegisterRequestAdotante request) {
         AdotanteUsuarios newUser = authService.register(request);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
