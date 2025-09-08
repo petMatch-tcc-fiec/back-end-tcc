@@ -2,6 +2,7 @@ package com.PetMatch.PetMatchBackEnd.features.auth.services.impl;
 
 import com.PetMatch.PetMatchBackEnd.features.auth.dto.LoginRequest;
 import com.PetMatch.PetMatchBackEnd.features.auth.dto.RegisterRequestAdotante;
+import com.PetMatch.PetMatchBackEnd.features.auth.dto.RegisterRequestOng;
 import com.PetMatch.PetMatchBackEnd.features.auth.services.AuthService;
 import com.PetMatch.PetMatchBackEnd.features.user.models.AdotanteUsuarios;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Ong.OngUsuarios;
@@ -9,6 +10,8 @@ import com.PetMatch.PetMatchBackEnd.features.user.services.AdotanteUsuariosServi
 import com.PetMatch.PetMatchBackEnd.features.user.services.OngUsuariosService;
 import com.PetMatch.PetMatchBackEnd.utils.PasswordEncryptor;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,31 +42,40 @@ public class AuthServiceImpl implements AuthService {
         return adotanteUsuariosService.save(adotanteUsuarios);
     }
 
-    @Override
-    public AdotanteUsuarios login(LoginRequest request) {
-        return adotanteUsuariosService.findByEmail(request.getEmail())
-                .filter(adotanteUsuarios -> PasswordEncryptor.matches(request.getSenha(), adotanteUsuarios.getSenhaAdotante()))
-                .orElseThrow(() -> new BadCredentialsException("Email ou senha inválidos."));
-    }
-
     //ongUsuarios
     @Override
-    public OngUsuarios register(RegisterRequestAdotante request) {
+    public OngUsuarios registerOng(RegisterRequestOng request) {
         OngUsuarios ongUsuarios = new OngUsuarios();
-        ongUsuarios.setEnderecoOng(request.getEndereco());
-        ongUsuarios.setTelefoneOng(request.getCpf());
-        ongUsuarios.setCelularOng(request.getCelular());
-        ongUsuarios.setCnpjOng(request.getCelular());
-        ongUsuarios.setEmailOng(request.getEmail());
-        ongUsuarios.setSenhaOng(request.getSenha());
+        ongUsuarios.setEnderecoOng(request.getEnderecoOng());
+        ongUsuarios.setTelefoneOng(request.getTelefoneOng());
+        ongUsuarios.setCelularOng(request.getCelularOng());
+        ongUsuarios.setCnpjOng(request.getCnpjOng());
+        ongUsuarios.setEmailOng(request.getEmailOng());
+        ongUsuarios.setSenhaOng(request.getSenhaOng());
 
         return ongUsuariosService.save(ongUsuarios);
     }
 
     @Override
-    public AdotanteUsuarios login(LoginRequest request) {
+    public UserDetails login(LoginRequest request) {
+        // Tenta encontrar o usuário como adotante
         return adotanteUsuariosService.findByEmail(request.getEmail())
-                .filter(adotanteUsuarios -> PasswordEncryptor.matches(request.getSenha(), adotanteUsuarios.getSenhaAdotante()))
-                .orElseThrow(() -> new BadCredentialsException("Email ou senha inválidos."));
+                .map(adotante -> {
+                    if (PasswordEncryptor.matches(request.getSenha(), adotante.getSenhaAdotante())) {
+                        return (UserDetails) adotante;
+                    }
+                    throw new BadCredentialsException("Email ou senha inválidos.");
+                })
+                .or(() -> {
+                    // Se não for um adotante, tenta encontrar como ONG
+                    return ongUsuariosService.findByEmail(request.getEmail())
+                            .map(ong -> {
+                                if (PasswordEncryptor.matches(request.getSenha(), ong.getSenhaOng())) {
+                                    return (UserDetails) ong;
+                                }
+                                throw new BadCredentialsException("Email ou senha inválidos.");
+                            });
+                })
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
     }
 }
