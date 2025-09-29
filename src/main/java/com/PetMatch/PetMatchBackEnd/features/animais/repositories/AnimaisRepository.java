@@ -1,6 +1,6 @@
-package com.PetMatch.PetMatchBackEnd.features.user.repositories;
+package com.PetMatch.PetMatchBackEnd.features.animais.repositories;
 
-import com.PetMatch.PetMatchBackEnd.features.user.models.Animais;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
-package com.PetMatch.PetMatchBackEnd.features.user.services;
+package com.PetMatch.PetMatchBackEnd.features.animais.services;
 
-import com.PetMatch.PetMatchBackEnd.features.user.models.Animais;
-import com.PetMatch.PetMatchBackEnd.features.user.models.Ong.OngUsuarios;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
+import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
 
 import java.util.List;
 import java.util.Optional;

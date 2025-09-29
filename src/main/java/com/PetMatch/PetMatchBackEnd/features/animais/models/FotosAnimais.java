@@ -1,4 +1,4 @@
-package com.PetMatch.PetMatchBackEnd.features.user.models;
+package com.PetMatch.PetMatchBackEnd.features.animais.models;
 
 
 import jakarta.persistence.*;

@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "AdotanteUsuarios")
-public class AdotanteUsuarios implements UserDetails{
+public class AdotanteUsuarios extends UsuarioSistema{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -32,7 +32,7 @@ public class AdotanteUsuarios implements UserDetails{
     private String celularAdotante;
 
     @Column(unique = true, nullable = false, name = "email_adotante")
-    private String email;
+    private String emailAdotante;
 
     @Column(nullable = false, name = "senha_adotante")
     private String senhaAdotante;
@@ -45,19 +45,6 @@ public class AdotanteUsuarios implements UserDetails{
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private UserLevel userLevel = UserLevel.USER;
-
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(userLevel);
-    }
-
-    @Override
-    public String getPassword() {
-        return senhaAdotante;
-    }
-
-    public String getUsername() {
-        return email;
-    }
+    private UserLevel userLevel = UserLevel.ADOTANTE;
 
 }

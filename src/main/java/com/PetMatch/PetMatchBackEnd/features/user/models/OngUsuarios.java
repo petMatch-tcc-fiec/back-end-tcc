@@ -1,6 +1,5 @@
-package com.PetMatch.PetMatchBackEnd.features.user.models.Ong;
+package com.PetMatch.PetMatchBackEnd.features.user.models;
 
-import com.PetMatch.PetMatchBackEnd.features.user.models.UserLevel;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,12 +12,15 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "OngUsuarios")
-public class OngUsuarios implements UserDetails{
+public class OngUsuarios extends UsuarioSistema{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false, name = "id_ong")
     private UUID idOng;
+
+    @Column(name = "nome_fantasia_ong")
+    private String nomeFantasiaOng;
 
     @Column(name = "endereco_ong")
     private String enderecoOng;
@@ -42,17 +44,4 @@ public class OngUsuarios implements UserDetails{
     @Enumerated(EnumType.STRING)
     private UserLevel userLevel = UserLevel.ONG;
 
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(userLevel);
-    }
-
-    @Override
-    public String getPassword() {
-        return senhaOng;
-    }
-
-    @Override
-    public String getUsername() {
-        return emailOng;
-    }
 }

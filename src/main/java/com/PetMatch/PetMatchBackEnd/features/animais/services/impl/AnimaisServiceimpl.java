@@ -1,10 +1,10 @@
-package com.PetMatch.PetMatchBackEnd.features.user.services.impl;
+package com.PetMatch.PetMatchBackEnd.features.animais.services.impl;
 
-import com.PetMatch.PetMatchBackEnd.features.user.models.Animais;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
 
-import com.PetMatch.PetMatchBackEnd.features.user.models.Ong.OngUsuarios;
-import com.PetMatch.PetMatchBackEnd.features.user.repositories.AnimaisRepository;
-import com.PetMatch.PetMatchBackEnd.features.user.services.AnimaisService;
+import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
+import com.PetMatch.PetMatchBackEnd.features.animais.repositories.AnimaisRepository;
+import com.PetMatch.PetMatchBackEnd.features.animais.services.AnimaisService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
