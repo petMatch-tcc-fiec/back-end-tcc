@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("v1/api/usuarios")
+@RequestMapping("/v1/api/usuarios")
 @AllArgsConstructor
 public class UsuarioController {
 

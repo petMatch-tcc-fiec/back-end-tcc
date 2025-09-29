@@ -40,10 +40,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Desabilita a proteção CSRF
+                .cors(httpSecurityCorsConfigurer -> {
+                    httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
+                })
                 .authorizeHttpRequests(auth -> auth
-                        // Permite acesso irrestrito a endpoints de autenticação (ex: /api/auth/login)
-                        .requestMatchers("/v1/api/auth/**").permitAll()
-                        // Requer autenticação para todas as outras requisições
+                        .requestMatchers("/v1/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/v1/api/auth/**", "/v1/api/usuarios/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
