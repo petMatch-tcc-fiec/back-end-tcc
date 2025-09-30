@@ -11,27 +11,24 @@ import com.PetMatch.PetMatchBackEnd.features.user.repositories.OngUsuariosReposi
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.UsuarioRepository;
 import com.PetMatch.PetMatchBackEnd.features.user.services.UsuarioService;
 import com.PetMatch.PetMatchBackEnd.utils.PasswordEncryptor;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Service
+@AllArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
     private final AdminUsuariosRepository adminUsuariosRepository;
     private final AdotanteUsuariosRepository adotanteUsuariosRepository;
     private final OngUsuariosRepository ongUsuariosRepository;
-
-    public UsuarioServiceImpl(UsuarioRepository usuarioRepository, AdminUsuariosRepository adminUsuariosRepository, AdotanteUsuariosRepository adotanteUsuariosRepository, OngUsuariosRepository ongUsuariosRepository) {
-        this.usuarioRepository = usuarioRepository;
-        this.adminUsuariosRepository = adminUsuariosRepository;
-        this.adotanteUsuariosRepository = adotanteUsuariosRepository;
-        this.ongUsuariosRepository = ongUsuariosRepository;
-    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
