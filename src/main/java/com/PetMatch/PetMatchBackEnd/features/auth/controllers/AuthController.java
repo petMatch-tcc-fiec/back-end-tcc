@@ -39,4 +39,16 @@ public class AuthController {
         response.setToken(jwtToken);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/loginprova")
+    public ResponseEntity<LoginResponse> loginProva(@RequestBody LoginRequest request) {
+        request.setEmail("usuario@exemplo.com");
+        request.setPassword("Senha123!");
+        Usuario loggedInUser = authService.login(request);
+
+        String jwtToken = this.jwtService.generateToken(loggedInUser);
+        LoginResponse response = new LoginResponse();
+        response.setToken(jwtToken);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

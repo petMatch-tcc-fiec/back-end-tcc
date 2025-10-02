@@ -1,9 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.features.user.services.impl;
 
-import com.PetMatch.PetMatchBackEnd.features.user.dto.CreatedUsuarioResponseDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterAdminDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterAdotanteDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterOngDto;
+import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
 import com.PetMatch.PetMatchBackEnd.features.user.models.*;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.AdminUsuariosRepository;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.AdotanteUsuariosRepository;
@@ -107,6 +104,8 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         Usuario savedUser = save(usuario);
         AdotanteUsuarios adotante = new AdotanteUsuarios();
         adotante.setUsuario(savedUser);
+        adotante.setNomeAdotante(registerAdotanteDto.getName());
+        adotante.setEmailAdotante(registerAdotanteDto.getEmail());
         adotante.setCpfAdotante(registerAdotanteDto.getCpf());
         adotante.setEnderecoAdotante(registerAdotanteDto.getEndereco());
         adotante.setCelularAdotante(registerAdotanteDto.getCelular());
@@ -145,5 +144,31 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     @Override
     public void deleteById(UUID id) {
         usuarioRepository.deleteById(id);
+    }
+
+    @Override
+    public MyUserDto getMe(Usuario usuario) {
+        UserLevel tipoUsuario = usuario.getAccessLevel();
+        MyUserDto myUserDto = null;
+        if(UserLevel.ADMIN.equals(tipoUsuario)){
+            AdminUsuarios admin = adminUsuariosRepository.findByUsuario(usuario).orElseThrow();
+            myUserDto = new MyUserDto();
+            myUserDto.setCnpj(admin.getCpfOuCnpjAdmin());
+            myUserDto.setTipo("ADMIN");
+        } else if(UserLevel.ONG.equals(tipoUsuario)){
+            OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuario).orElseThrow();
+            myUserDto = new MyUserDto();
+            myUserDto.setCnpj(ong.getCnpjOng());
+            myUserDto.setTipo("ONG");
+        } else {
+            AdotanteUsuarios adotanteUsuarios = adotanteUsuariosRepository.findByUsuario(usuario).orElseThrow();
+            myUserDto = new MyUserDto();
+            myUserDto.setCnpj(adotanteUsuarios.getCpfAdotante());
+            myUserDto.setNome(adotanteUsuarios.getNomeAdotante());
+            myUserDto.setTipo("ADOTANTE");
+        }
+        myUserDto.setPicture(usuario.getPicture());
+        myUserDto.setEmail(usuario.getEmail());
+        return myUserDto;
     }
 }

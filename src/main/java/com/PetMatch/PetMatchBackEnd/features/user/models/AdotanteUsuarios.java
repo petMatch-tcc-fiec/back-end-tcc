@@ -43,8 +43,5 @@ public class AdotanteUsuarios extends UsuarioSistema{
     @Column
     private String preferencia;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserLevel userLevel = UserLevel.ADOTANTE;
 
 }

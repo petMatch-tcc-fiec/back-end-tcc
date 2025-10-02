@@ -32,6 +32,9 @@ public class Usuario implements UserDetails {
     @Column
     private String picture;
 
+    @Column
+    private RegisterState state;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserLevel accessLevel;

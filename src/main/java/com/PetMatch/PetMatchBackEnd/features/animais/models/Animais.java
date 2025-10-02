@@ -3,6 +3,8 @@ package com.PetMatch.PetMatchBackEnd.features.animais.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -27,7 +29,7 @@ public class Animais {
     private String sexo;
 
     @Column(name = "especie_animal")
-    private String tipo;
+    private String especie;
 
     @Column(name = "raca_animal")
     private String raca;
@@ -38,11 +40,11 @@ public class Animais {
     @Column(name = "observacoes_animal")
     private String observacoesAnimal;
 
-    @Column(name = "ficha_medica_animal")
+    // Relacionamento OneToOne com FichaMedicaAnimal
+    @OneToOne(mappedBy = "animal", cascade = CascadeType.ALL)
     private FichaMedicaAnimal fichaMedicaAnimal;
 
-    @Column(name = "fotos_animais")
-    private FotosAnimais fotosAnimais;
-
-
+    // Relacionamento OneToMany com FotosAnimais
+    @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FotosAnimais> fotosAnimais = new ArrayList<>();
 }

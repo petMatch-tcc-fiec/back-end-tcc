@@ -1,5 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.utils;
 
+import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,29 +24,47 @@ public class JwtService {
 
     // A chave secreta deve ser gerada e armazenada de forma segura.
     // **Não hardcode uma chave como esta em produção!**
-    private final SecretKey secretKey;
-    private final long expirationTimeMs;
-
-    public JwtService(@Value("${jwt.secret}") String secretString,
-                      @Value("${jwt.expiration}") long expirationTimeMs) {
-        // A chave deve ser decodificada de Base64 para ser usada
-        byte[] keyBytes = Decoders.BASE64.decode(secretString);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-        this.expirationTimeMs = expirationTimeMs;
-    }
+    @Value("${security.jwt.secret-key}")
+    private String secretKey;
+    @Value("${security.jwt.expiration-time}")
+    private long expirationTimeMs;
 
     public String generateToken(UserDetails userDetails) {
-        // Extrai as autoridades (papéis/permissões) do UserDetails
-        String authorities = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+        return generateToken(new HashMap<>(), userDetails);
+    }
 
-        // Cria o mapa de claims com as autoridades
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("authorities", authorities);
+    public String generateTokenComplete(Usuario usuario) {
+        HashMap<String, Object> extraInfos = new HashMap<>();
+        extraInfos.put("name", usuario.getName());
+        extraInfos.put("picture", usuario.getPicture());
+        extraInfos.put("accessLevel", usuario.getAccessLevel().name());
+        extraInfos.put("registerState", usuario.getState());
 
-        // Chama o método que realmente constrói o token com o novo claims
-        return generateToken(userDetails.getUsername(), claims);
+        return generateToken(extraInfos, usuario);
+    }
+
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return buildToken(extraClaims, userDetails, expirationTimeMs);
+    }
+
+    private String buildToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails,
+            long expiration
+    ) {
+        return Jwts
+                .builder()
+                .setClaims(extraClaims)
+
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
@@ -79,27 +99,5 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-
-    /**
-     * Gera um token JWT com base nos detalhes do usuário e nos claims extras.
-     *
-     * @param subject    O assunto do token, geralmente um identificador do usuário (e.g., username).
-     * @param claims     Um mapa de claims (informações) adicionais para incluir no payload do JWT.
-     * @return O token JWT assinado como uma String.
-     */
-    public String generateToken(String subject, Map<String, Object> claims) {
-        // Data de expiração do token
-        Date now = new Date();
-        Date expirationDate = new Date(now.getTime() + expirationTimeMs);
-
-        // Constrói o token JWT
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(now)
-                .setExpiration(expirationDate)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
     }
 }

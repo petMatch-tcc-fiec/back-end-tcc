@@ -21,6 +21,6 @@ public class FichaMedicaAnimal {
     private String historicoSaude;
 
     @OneToOne
-    @JoinColumn(name = "fl_animais_id_animal", nullable = false)
+    @JoinColumn(name = "fk_animais_id_animal", nullable = false)
     private Animais animal;
 }

@@ -40,8 +40,5 @@ public class OngUsuarios extends UsuarioSistema{
     @Column(nullable = false, name = "senha_ong")
     private String senhaOng;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserLevel userLevel = UserLevel.ONG;
 
 }

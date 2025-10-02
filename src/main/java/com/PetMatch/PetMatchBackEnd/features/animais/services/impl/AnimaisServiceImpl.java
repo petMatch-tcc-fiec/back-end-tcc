@@ -12,11 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class AnimaisServiceimpl implements AnimaisService{
+public class AnimaisServiceImpl implements AnimaisService{
 
     private final AnimaisRepository animaisRepository;
 
-    public AnimaisServiceimpl(AnimaisRepository animaisRepository) {
+    public AnimaisServiceImpl(AnimaisRepository animaisRepository) {
         this.animaisRepository = animaisRepository;
         //this.passwordEncoder = passwordEncoder;
     }
@@ -27,20 +27,14 @@ public class AnimaisServiceimpl implements AnimaisService{
         animal.setIdade(registerAnimais.getIdade());
         animal.setPorte(registerAnimais.getPorte());
         animal.setSexo(registerAnimais.getSexo());
-        animal.setTipo(registerAnimais.getTipo());
+        animal.setEspecie(registerAnimais.getEspecie());
         animal.setRaca(registerAnimais.getRaca());
         animal.setCor(registerAnimais.getCor());
         animal.setObservacoesAnimal(registerAnimais.getObservacoesAnimal());
         animal.setFichaMedicaAnimal(registerAnimais.getFichaMedicaAnimal());
         animal.setFotosAnimais(registerAnimais.getFotosAnimais());
 
-
         return animaisRepository.save(animal);
-    }
-
-    @Override
-    public OngUsuarios save(Animais animais) {
-        return null;
     }
 
     @Override
@@ -49,13 +43,28 @@ public class AnimaisServiceimpl implements AnimaisService{
     }
 
     @Override
-    public Optional<Animais> findBySexo(String sexo) {
+    public List<Animais> findBySexo(String sexo) {
         return animaisRepository.findBySexo(sexo);
     }
 
     @Override
-    public Optional<Animais> findByRaca(String raca) {
-        return Optional.empty();
+    public List<Animais> findByRaca(String raca) {
+        return animaisRepository.findByRaca(raca);
+    }
+
+    @Override
+    public List<Animais> findByCor(String cor) {
+        return animaisRepository.findByCor(cor);
+    }
+
+    @Override
+    public List<Animais> findByPorte(String porte) {
+        return animaisRepository.findByPorte(porte);
+    }
+
+    @Override
+    public List<Animais> findByEspecie(String especie) {
+        return animaisRepository.findByEspecie(especie);
     }
 
     @Override
@@ -70,7 +79,7 @@ public class AnimaisServiceimpl implements AnimaisService{
             animais.setIdade(updateAnimais.getIdade());
             animais.setPorte(updateAnimais.getPorte());
             animais.setSexo(updateAnimais.getSexo());
-            animais.setTipo(updateAnimais.getTipo());
+            animais.setEspecie(updateAnimais.getEspecie());
             animais.setRaca(updateAnimais.getRaca());
             animais.setCor(updateAnimais.getCor());
             animais.setObservacoesAnimal(updateAnimais.getObservacoesAnimal());
@@ -84,6 +93,6 @@ public class AnimaisServiceimpl implements AnimaisService{
 
     @Override
     public void deleteById(UUID id) {
-
+        animaisRepository.deleteById(id);
     }
 }

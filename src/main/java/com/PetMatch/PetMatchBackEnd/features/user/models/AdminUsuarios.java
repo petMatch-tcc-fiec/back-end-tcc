@@ -26,7 +26,4 @@ public class AdminUsuarios extends UsuarioSistema{
     @Column(unique = true, nullable = false, name = "cpf_cnpj_admin")
     private String cpfOuCnpjAdmin;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserLevel userLevel = UserLevel.ADMIN;
 }

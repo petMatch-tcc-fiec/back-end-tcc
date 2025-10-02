@@ -4,6 +4,7 @@ import com.PetMatch.PetMatchBackEnd.config.filters.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -43,16 +45,16 @@ public class SecurityConfig {
                 .cors(httpSecurityCorsConfigurer -> {
                     httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
                 })
+                .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/v1/api/auth/**", "/v1/api/usuarios/**").permitAll()
+                        .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/usuarios/admin", "/v1/api/usuarios/adotante", "/v1/api/usuarios/ong").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         // Define a política de gerenciamento de sessão como STATELESS para JWT
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authenticationProvider(authenticationProvider) // Adiciona o provedor de autenticação customizado
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Adiciona o filtro JWT antes do filtro de autenticação padrão
 
         return http.build();

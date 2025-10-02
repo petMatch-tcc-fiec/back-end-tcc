@@ -19,7 +19,7 @@ public class FotosAnimais {
     private String arquivoAnimal;
 
     @ManyToOne
-    @JoinColumn(name = "fl_animais_id_animal", nullable = false)
+    @JoinColumn(name = "fk_animais_id_animal", nullable = false)
     private Animais animal;
 }
 

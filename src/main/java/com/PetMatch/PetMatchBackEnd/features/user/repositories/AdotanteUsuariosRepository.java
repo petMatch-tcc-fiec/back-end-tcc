@@ -9,6 +9,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface AdotanteUsuariosRepository extends JpaRepository<AdotanteUsuarios, UUID> {
-    Optional<AdotanteUsuarios> findByUser(Usuario usuario);
+public interface AdotanteUsuariosRepository extends JpaRepository<AdotanteUsuarios, String> {
+    Optional<AdotanteUsuarios> findByUsuario(Usuario usuario);
 }

@@ -1,13 +1,14 @@
 package com.PetMatch.PetMatchBackEnd.features.user.controllers;
 
-import com.PetMatch.PetMatchBackEnd.features.user.dto.CreatedUsuarioResponseDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterAdminDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterAdotanteDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterOngDto;
+import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
+import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.features.user.services.UsuarioService;
+import com.PetMatch.PetMatchBackEnd.utils.ImageUtils;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/v1/api/usuarios")
@@ -31,4 +32,17 @@ public class UsuarioController {
         return usuarioService.saveOng(registerOngDto);
     }
 
+    @GetMapping("/me")
+    public MyUserDto getMe(Authentication authentication) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        return usuarioService.getMe(usuario);
+    }
+
+    @PutMapping("/photo")
+    public void insertUserImage(@RequestParam("image") MultipartFile image, Authentication authentication){
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        String imageName = ImageUtils.saveImage(image);
+        usuario.setPicture(imageName);
+        usuarioService.save(usuario);
+    }
 }

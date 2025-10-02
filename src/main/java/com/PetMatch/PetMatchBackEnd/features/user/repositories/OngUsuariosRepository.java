@@ -6,9 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface OngUsuariosRepository extends JpaRepository<OngUsuarios, UUID> {
-    Optional<OngUsuarios> findByUser(Usuario usuario);
+public interface OngUsuariosRepository extends JpaRepository<OngUsuarios, String> {
+    Optional<OngUsuarios> findByUsuario(Usuario usuario);
 }

@@ -1,9 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.features.user.services;
 
-import com.PetMatch.PetMatchBackEnd.features.user.dto.CreatedUsuarioResponseDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterAdminDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterAdotanteDto;
-import com.PetMatch.PetMatchBackEnd.features.user.dto.RegisterOngDto;
+import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 
 import java.util.List;
@@ -20,6 +17,6 @@ public interface UsuarioService{
     CreatedUsuarioResponseDto saveAdmin(RegisterAdminDto registerAdminDto);
     CreatedUsuarioResponseDto saveAdotante(RegisterAdotanteDto registerAdotanteDto);
     CreatedUsuarioResponseDto saveOng(RegisterOngDto registerOngDto);
-
     void deleteById(UUID id);
+    MyUserDto getMe(Usuario usuario);
 }
