@@ -29,7 +29,8 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return usuarioRepository.findByEmail(email).orElseThrow();
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
     }
 
     @Override
@@ -106,6 +107,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         adotante.setUsuario(savedUser);
         adotante.setNomeAdotante(registerAdotanteDto.getName());
         adotante.setEmailAdotante(registerAdotanteDto.getEmail());
+        adotante.setSenhaAdotante(registerAdotanteDto.getPassword());
         adotante.setCpfAdotante(registerAdotanteDto.getCpf());
         adotante.setEnderecoAdotante(registerAdotanteDto.getEndereco());
         adotante.setCelularAdotante(registerAdotanteDto.getCelular());

@@ -10,6 +10,8 @@ import com.PetMatch.PetMatchBackEnd.utils.PasswordEncryptor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -32,7 +34,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Usuario login(LoginRequest request) {
-        return usuarioService.findByEmail(request.getEmail()).filter(usuario -> PasswordEncryptor.matches(request.getPassword(), usuario.getPassword()))
-                .orElseThrow(() -> new BadCredentialsException("Email ou senha inválidos."));
+        Optional<Usuario> usuario = usuarioService.findByEmail(request.getEmail());
+        if (usuario.isPresent()) {
+            Usuario encontrado = usuario.get();
+            if (PasswordEncryptor.matches(request.getPassword(), encontrado.getPassword()))
+                return encontrado;
+        }
+        throw new BadCredentialsException("Email ou senha inválidos.");
     }
 }
