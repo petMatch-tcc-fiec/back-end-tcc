@@ -47,6 +47,7 @@ public class JwtService {
         return buildToken(extraClaims, userDetails, expirationTimeMs);
     }
 
+
     private String buildToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,
@@ -95,7 +96,7 @@ public class JwtService {
     // Extrai todos os "claims" do token
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+                .setSigningKey(getSignInKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

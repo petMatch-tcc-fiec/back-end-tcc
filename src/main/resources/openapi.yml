@@ -1,0 +1,622 @@
+openapi: 3.0.3
+info:
+  title: PetMatch API
+  description: API para sistema de adoção de animais
+  version: 1.0.0
+  contact:
+    name: PetMatch Support
+
+servers:
+  - url: http://localhost:5000
+    description: Servidor de Desenvolvimento
+
+tags:
+  - name: Usuários
+    description: Gerenciamento de usuários (Admin, Adotante, ONG)
+  - name: Animais
+    description: Gerenciamento de animais para adoção
+  - name: Imagens
+    description: Upload e download de imagens
+  - name: Autenticação
+    description: Login e autenticação JWT
+
+paths:
+  /v1/api/auth/register:
+    post:
+      tags:
+        - Autenticação
+      summary: Registrar novo usuário
+      description: Cria um novo usuário no sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              email: "usuario@exemplo.com"
+              password: "Senha@123"
+              name: "João Silva"
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Dados inválidos
+        '409':
+          description: Email já cadastrado
+
+  /v1/api/auth/login:
+    post:
+      tags:
+        - Autenticação
+      summary: Login de usuário
+      description: Autentica um usuário e retorna um token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "usuario@exemplo.com"
+              password: "Senha@123"
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '401':
+          description: Credenciais inválidas
+        '400':
+          description: Dados inválidos
+
+  /v1/api/auth/loginprova:
+    post:
+      tags:
+        - Autenticação
+      summary: Login de teste (DEV ONLY)
+      description: Endpoint de teste que força credenciais fixas - REMOVER EM PRODUÇÃO
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /v1/api/usuarios/admin:
+    post:
+      tags:
+        - Usuários
+      summary: Cadastrar Admin
+      description: Cria um novo usuário administrador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterAdminDto'
+      responses:
+        '201':
+          description: Admin criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedUsuarioResponse'
+        '400':
+          description: Dados inválidos
+        '409':
+          description: Email já cadastrado
+
+  /v1/api/usuarios/adotante:
+    post:
+      tags:
+        - Usuários
+      summary: Cadastrar Adotante
+      description: Cria um novo usuário adotante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterAdotanteDto'
+            example:
+              name: "Maria Silva Santos"
+              email: "maria.silva@teste.com"
+              password: "SenhaSegura@123"
+              cpf: "12345678900"
+              endereco: "Rua das Flores, 123, Centro"
+              celular: "19987654321"
+              descricaoOutrosAnimais: "Possuo 1 gato castrado"
+              preferencia: "Cachorro de porte pequeno"
+      responses:
+        '201':
+          description: Adotante criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedUsuarioResponse'
+        '400':
+          description: Dados inválidos
+        '409':
+          description: Email ou CPF já cadastrado
+
+  /v1/api/usuarios/ong:
+    post:
+      tags:
+        - Usuários
+      summary: Cadastrar ONG
+      description: Cria um novo usuário ONG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterOngDto'
+      responses:
+        '201':
+          description: ONG criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedUsuarioResponse'
+        '400':
+          description: Dados inválidos
+        '409':
+          description: Email já cadastrado
+
+  /v1/api/usuarios/me:
+    get:
+      tags:
+        - Usuários
+      summary: Obter dados do usuário autenticado
+      description: Retorna informações do usuário logado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dados do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyUserDto'
+        '401':
+          description: Não autenticado
+
+  /v1/api/usuarios/photo:
+    put:
+      tags:
+        - Usuários
+      summary: Upload de foto do usuário
+      description: Faz upload da foto de perfil do usuário autenticado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Arquivo de imagem (JPEG, PNG, etc)
+      responses:
+        '200':
+          description: Foto atualizada com sucesso
+        '400':
+          description: Arquivo inválido
+        '401':
+          description: Não autenticado
+
+  /images/{filename}:
+    get:
+      tags:
+        - Imagens
+      summary: Obter imagem
+      description: Retorna uma imagem armazenada no servidor
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nome do arquivo de imagem
+          example: "user_photo_123.jpg"
+        - name: thumbnail
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Se true, retorna a thumbnail da imagem (150x150px)
+      responses:
+        '200':
+          description: Imagem encontrada
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/gif:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Imagem não encontrada
+        '500':
+          description: Erro ao processar imagem
+
+  /api/animais:
+    get:
+      tags:
+        - Animais
+      summary: Listar todos os animais
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de animais
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Animal'
+        '401':
+          description: Não autenticado
+
+    post:
+      tags:
+        - Animais
+      summary: Cadastrar novo animal
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalInput'
+      responses:
+        '201':
+          description: Animal criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Animal'
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Não autenticado
+
+  /api/animais/{id}:
+    get:
+      tags:
+        - Animais
+      summary: Buscar animal por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Animal encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Animal'
+        '404':
+          description: Animal não encontrado
+        '401':
+          description: Não autenticado
+
+    put:
+      tags:
+        - Animais
+      summary: Atualizar animal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalInput'
+      responses:
+        '200':
+          description: Animal atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Animal'
+        '404':
+          description: Animal não encontrado
+        '401':
+          description: Não autenticado
+
+    delete:
+      tags:
+        - Animais
+      summary: Deletar animal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Animal deletado com sucesso
+        '404':
+          description: Animal não encontrado
+        '401':
+          description: Não autenticado
+
+  /api/animais/sexo/{sexo}:
+    get:
+      tags:
+        - Animais
+      summary: Buscar animais por sexo
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sexo
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [M, F]
+      responses:
+        '200':
+          description: Lista de animais
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Animal'
+
+  /api/animais/raca/{raca}:
+    get:
+      tags:
+        - Animais
+      summary: Buscar animais por raça
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: raca
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de animais
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Animal'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterAdminDto:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: "Admin Silva"
+        email:
+          type: string
+          format: email
+          example: "admin@petmatch.com"
+        password:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};'':"\\|,.<>\/?]).{8,}$'
+          example: "AdminPass@123"
+
+    RegisterAdotanteDto:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - cpf
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: "Maria Silva Santos"
+        email:
+          type: string
+          format: email
+          example: "maria.silva@email.com"
+        password:
+          type: string
+          minLength: 8
+          example: "SenhaSegura@123"
+        cpf:
+          type: string
+          example: "12345678900"
+        endereco:
+          type: string
+          example: "Rua das Flores, 123, Centro"
+        celular:
+          type: string
+          example: "19987654321"
+        descricaoOutrosAnimais:
+          type: string
+          example: "Possuo 1 gato castrado de 3 anos"
+        preferencia:
+          type: string
+          example: "Cachorro de porte pequeno ou médio"
+
+    RegisterOngDto:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: "ONG Amigos dos Animais"
+        email:
+          type: string
+          format: email
+          example: "contato@onganimais.com"
+        password:
+          type: string
+          minLength: 8
+          example: "OngPass@123"
+        cnpj:
+          type: string
+          example: "12345678000190"
+        endereco:
+          type: string
+        telefone:
+          type: string
+
+    CreatedUsuarioResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+
+    MyUserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        picture:
+          type: string
+          nullable: true
+        accessLevel:
+          type: string
+          enum: [ADMIN, ADOTANTE, ONG]
+
+    Animal:
+      type: object
+      properties:
+        id_animal:
+          type: string
+          format: uuid
+        nome:
+          type: string
+          example: "Rex"
+        idade:
+          type: integer
+          example: 3
+        porte:
+          type: string
+          example: "Médio"
+        sexo:
+          type: string
+          enum: [M, F]
+          example: "M"
+        tipo:
+          type: string
+          example: "Cachorro"
+        raca:
+          type: string
+          example: "Vira-lata"
+        cor:
+          type: string
+          example: "Caramelo"
+        observacoesAnimal:
+          type: string
+          example: "Animal dócil e brincalhão"
+
+    AnimalInput:
+      type: object
+      required:
+        - nome
+        - sexo
+        - tipo
+      properties:
+        nome:
+          type: string
+          example: "Rex"
+        idade:
+          type: integer
+          example: 3
+        porte:
+          type: string
+          example: "Médio"
+        sexo:
+          type: string
+          enum: [M, F]
+          example: "M"
+        tipo:
+          type: string
+          example: "Cachorro"
+        raca:
+          type: string
+          example: "Vira-lata"
+        cor:
+          type: string
+          example: "Caramelo"
+        observacoesAnimal:
+          type: string
+          example: "Animal dócil e brincalhão"

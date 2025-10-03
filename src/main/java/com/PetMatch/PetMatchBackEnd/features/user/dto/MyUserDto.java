@@ -13,4 +13,7 @@ public class MyUserDto {
     String cpf;
     String tipo;
     String picture;
+    String endereco;
+    String celular;
+    String telefone;
 }

@@ -163,7 +163,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         } else {
             AdotanteUsuarios adotanteUsuarios = adotanteUsuariosRepository.findByUsuario(usuario).orElseThrow();
             myUserDto = new MyUserDto();
-            myUserDto.setCnpj(adotanteUsuarios.getCpfAdotante());
+            myUserDto.setCpf(adotanteUsuarios.getCpfAdotante());
             myUserDto.setNome(adotanteUsuarios.getNomeAdotante());
             myUserDto.setTipo("ADOTANTE");
         }
