@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/v1/api/animais/**").hasAuthority("ONG")
                         .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/usuarios/admin", "/v1/api/usuarios/adotante", "/v1/api/usuarios/ong").permitAll()
                         .anyRequest().authenticated()
                 )

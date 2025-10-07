@@ -269,7 +269,7 @@ paths:
         '500':
           description: Erro ao processar imagem
 
-  /api/animais:
+  /v1/api/animais:
     get:
       tags:
         - Animais
@@ -291,7 +291,8 @@ paths:
     post:
       tags:
         - Animais
-      summary: Cadastrar novo animal
+      summary: Cadastrar novo animal (Apenas ONGs)
+      description: Apenas usuários com acesso ONG podem cadastrar animais
       security:
         - bearerAuth: []
       requestBody:
@@ -311,8 +312,10 @@ paths:
           description: Dados inválidos
         '401':
           description: Não autenticado
+        '403':
+          description: Apenas ONGs podem cadastrar animais
 
-  /api/animais/{id}:
+  /v1/api/animais/{id}:
     get:
       tags:
         - Animais
@@ -390,7 +393,7 @@ paths:
         '401':
           description: Não autenticado
 
-  /api/animais/sexo/{sexo}:
+  /v1/api/animais/sexo/{sexo}:
     get:
       tags:
         - Animais
@@ -414,7 +417,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Animal'
 
-  /api/animais/raca/{raca}:
+  /v1/api/animais/raca/{raca}:
     get:
       tags:
         - Animais
@@ -465,6 +468,9 @@ components:
           minLength: 8
           pattern: '^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};'':"\\|,.<>\/?]).{8,}$'
           example: "AdminPass@123"
+        cpfOuCnpj:
+          type: string
+          example: "12345678900 ou 12345678000190"
 
     RegisterAdotanteDto:
       type: object
@@ -548,6 +554,65 @@ components:
         name:
           type: string
         email:
+          type: string
+        picture:
+          type: string
+          nullable: true
+        accessLevel:
+          type: string
+          enum: [ADMIN, ADOTANTE, ONG]
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          example: "usuario@exemplo.com"
+        password:
+          type: string
+          minLength: 8
+          example: "Senha@123"
+        name:
+          type: string
+          minLength: 3
+          example: "João Silva"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "usuario@exemplo.com"
+        password:
+          type: string
+          example: "Senha@123"
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token para autenticação
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3VhcmlvQGV4ZW1wbG8uY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        name:
           type: string
         picture:
           type: string

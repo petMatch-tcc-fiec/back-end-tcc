@@ -1,7 +1,7 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -9,7 +9,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "AdotanteUsuarios")
 public class AdotanteUsuarios extends UsuarioSistema{
