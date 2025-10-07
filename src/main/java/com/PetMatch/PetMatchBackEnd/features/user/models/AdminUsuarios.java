@@ -1,12 +1,16 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "AdminUsuarios")
 public class AdminUsuarios extends UsuarioSistema{
 
     @Id

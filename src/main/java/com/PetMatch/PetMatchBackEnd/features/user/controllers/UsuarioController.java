@@ -1,6 +1,7 @@
 package com.PetMatch.PetMatchBackEnd.features.user.controllers;
 
 import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
+import com.PetMatch.PetMatchBackEnd.features.user.models.RegisterState;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.features.user.services.UsuarioService;
 import com.PetMatch.PetMatchBackEnd.utils.ImageUtils;
@@ -43,6 +44,7 @@ public class UsuarioController {
         Usuario usuario = (Usuario) authentication.getPrincipal();
         String imageName = ImageUtils.saveImage(image);
         usuario.setPicture(imageName);
+        usuario.setState(RegisterState.IMAGE_CREATED);
         usuarioService.save(usuario);
     }
 }

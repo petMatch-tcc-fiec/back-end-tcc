@@ -7,25 +7,25 @@ import com.PetMatch.PetMatchBackEnd.features.user.models.UserLevel;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.features.user.services.UsuarioService;
 import com.PetMatch.PetMatchBackEnd.utils.PasswordEncryptor;
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UsuarioService usuarioService;
-
-    public AuthServiceImpl(UsuarioService usuarioService) {
-        this.usuarioService = usuarioService;
-    }
+    private final PasswordEncoder passwordEncoder;
 
     public Usuario register(RegisterRequest request) {
         Usuario usuario = new Usuario();
         usuario.setName(request.getName());
         usuario.setEmail(request.getEmail());
-        usuario.setPassword(request.getPassword());
+        usuario.setPassword(passwordEncoder.encode(request.getPassword()));
         usuario.setAccessLevel(UserLevel.ADOTANTE);
         usuario.setPicture(request.getPicture());
 

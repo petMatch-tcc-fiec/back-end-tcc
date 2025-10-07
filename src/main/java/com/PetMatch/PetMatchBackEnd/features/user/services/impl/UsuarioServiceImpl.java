@@ -35,9 +35,6 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
 
     @Override
     public Usuario save(Usuario usuario) {
-        if (usuario.getPassword() != null) {
-            usuario.setPassword(PasswordEncryptor.encrypt(usuario.getPassword()));
-        }
         return usuarioRepository.save(usuario);
     }
 
@@ -79,11 +76,14 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         }
         Usuario usuario = new Usuario();
         usuario.setEmail(registerAdminDto.getEmail());
-        usuario.setPassword(registerAdminDto.getPassword());
+        usuario.setPassword(PasswordEncryptor.encrypt(registerAdminDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ADMIN);
         Usuario savedUser = save(usuario);
         AdminUsuarios admin = new AdminUsuarios();
         admin.setUsuario(savedUser);
+        admin.setNomeAdmin(registerAdminDto.getName());
+        admin.setEmailAdmin(registerAdminDto.getEmail());
+        admin.setSenhaAdmin(PasswordEncryptor.encrypt(registerAdminDto.getPassword()));
         admin.setCpfOuCnpjAdmin(registerAdminDto.getCpfOuCnpj());
         AdminUsuarios savedAdmin = adminUsuariosRepository.save(admin);
         return CreatedUsuarioResponseDto.builder()
@@ -100,14 +100,14 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         }
         Usuario usuario = new Usuario();
         usuario.setEmail(registerAdotanteDto.getEmail());
-        usuario.setPassword(registerAdotanteDto.getPassword());
+        usuario.setPassword(PasswordEncryptor.encrypt(registerAdotanteDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ADOTANTE);
         Usuario savedUser = save(usuario);
         AdotanteUsuarios adotante = new AdotanteUsuarios();
         adotante.setUsuario(savedUser);
         adotante.setNomeAdotante(registerAdotanteDto.getName());
         adotante.setEmailAdotante(registerAdotanteDto.getEmail());
-        adotante.setSenhaAdotante(registerAdotanteDto.getPassword());
+        adotante.setSenhaAdotante(PasswordEncryptor.encrypt(registerAdotanteDto.getPassword()));
         adotante.setCpfAdotante(registerAdotanteDto.getCpf());
         adotante.setEnderecoAdotante(registerAdotanteDto.getEndereco());
         adotante.setCelularAdotante(registerAdotanteDto.getCelular());
@@ -128,10 +128,14 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         }
         Usuario usuario = new Usuario();
         usuario.setEmail(registerOngDto.getEmail());
-        usuario.setPassword(registerOngDto.getPassword());
+        usuario.setPassword(PasswordEncryptor.encrypt(registerOngDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ONG);
         Usuario savedUser = save(usuario);
         OngUsuarios ong = new OngUsuarios();
+        ong.setUsuario(savedUser);
+        ong.setNomeFantasiaOng(registerOngDto.getName());
+        ong.setEmailOng(registerOngDto.getEmail());
+        ong.setSenhaOng(PasswordEncryptor.encrypt(registerOngDto.getPassword()));
         ong.setEnderecoOng(registerOngDto.getEndereco());
         ong.setTelefoneOng(registerOngDto.getTelefone());
         ong.setCelularOng(registerOngDto.getCelular());

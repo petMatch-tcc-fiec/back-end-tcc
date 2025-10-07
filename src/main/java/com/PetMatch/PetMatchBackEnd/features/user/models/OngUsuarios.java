@@ -1,7 +1,7 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -9,7 +9,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "OngUsuarios")
 public class OngUsuarios extends UsuarioSistema{
@@ -21,6 +24,12 @@ public class OngUsuarios extends UsuarioSistema{
 
     @Column(name = "nome_fantasia_ong")
     private String nomeFantasiaOng;
+
+    @Column(unique = true, nullable = false, name = "email_ong")
+    private String emailOng;
+
+    @Column(nullable = false, name = "senha_ong")
+    private String senhaOng;
 
     @Column(name = "endereco_ong")
     private String enderecoOng;
@@ -34,11 +43,7 @@ public class OngUsuarios extends UsuarioSistema{
     @Column(name = "cnpj_ong")
     private String cnpjOng;
 
-    @Column(unique = true, nullable = false, name = "email_ong")
-    private String emailOng;
 
-    @Column(nullable = false, name = "senha_ong")
-    private String senhaOng;
 
 
 }
