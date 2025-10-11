@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration packages="org.apache.logging.log4j.core">
+    <Properties>
+        <!-- Diretório onde os logs serão salvos -->
+        <Property name="LOG_DIR">logs</Property>
+        <!-- Padrão de formato dos logs -->
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <!-- Padrão alternativo com mais detalhes -->
+        <Property name="LOG_PATTERN_DETAILED">[%d{ISO8601}] [%-5p] [%t] [%c{1}:%L] - %m%n</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender (para exibir no console) -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+
+        <!-- File Appender (arquivo único com todos os logs) -->
+        <File name="File" fileName="${LOG_DIR}/application.log">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </File>
+
+        <!-- Rolling File Appender (rotaciona arquivos por dia) -->
+        <RollingFile name="RollingFile"
+                     fileName="${LOG_DIR}/application.log"
+                     filePattern="${LOG_DIR}/application-%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN_DETAILED}"/>
+            <Policies>
+                <!-- Rotaciona diariamente -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <!-- Rotaciona quando atingir 100MB -->
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <!-- Mantém no máximo 30 arquivos -->
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <!-- Appender separado para erros -->
+        <RollingFile name="ErrorFile"
+                     fileName="${LOG_DIR}/error.log"
+                     filePattern="${LOG_DIR}/error-%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN_DETAILED}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <!-- Filtra apenas ERRO e FATAL -->
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+
+        <!-- Appender para logs da aplicação (excludes Spring Framework) -->
+        <RollingFile name="ApplicationFile"
+                     fileName="${LOG_DIR}/petmatch.log"
+                     filePattern="${LOG_DIR}/petmatch-%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN_DETAILED}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Logger para a aplicação PetMatch -->
+        <Logger name="com.PetMatch.PetMatchBackEnd" level="INFO" additivity="false">
+            <AppenderRef ref="ApplicationFile"/>
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!-- Logger para Spring Framework (menos verboso) -->
+        <Logger name="org.springframework" level="WARN"/>
+        <Logger name="org.hibernate" level="WARN"/>
+        <Logger name="org.apache" level="WARN"/>
+
+        <!-- Logger para banco de dados (comentado - descomente para debug) -->
+        <!-- <Logger name="org.hibernate.SQL" level="DEBUG"/>
+        <Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="DEBUG"/> -->
+
+        <!-- Root Logger (logs de tudo que não tem logger específico) -->
+        <Root level="INFO">
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorFile"/>
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
