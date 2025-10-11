@@ -1,5 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.features.user.services;
 
+import com.PetMatch.PetMatchBackEnd.features.firebase.models.dto.FcmTokenRequest;
 import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 
@@ -19,4 +20,5 @@ public interface UsuarioService{
     CreatedUsuarioResponseDto saveOng(RegisterOngDto registerOngDto);
     void deleteById(UUID id);
     MyUserDto getMe(Usuario usuario);
+    Usuario updateFcmToken(UUID userId, FcmTokenRequest request);
 }

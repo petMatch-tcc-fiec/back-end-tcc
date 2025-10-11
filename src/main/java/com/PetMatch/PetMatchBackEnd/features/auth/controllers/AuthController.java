@@ -6,6 +6,7 @@ import com.PetMatch.PetMatchBackEnd.features.auth.dto.RegisterRequest;
 import com.PetMatch.PetMatchBackEnd.features.auth.services.AuthService;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.utils.JwtService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/api/auth")
 public class AuthController {

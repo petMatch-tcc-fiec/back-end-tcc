@@ -33,6 +33,9 @@ public class Usuario implements UserDetails {
     private String picture;
 
     @Column
+    private String fcmToken;
+
+    @Column
     private RegisterState state;
 
     @Enumerated(EnumType.STRING)

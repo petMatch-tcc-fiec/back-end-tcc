@@ -24,7 +24,7 @@ public class EventoServiceImpl implements EventoService {
     private final OngUsuariosRepository ongUsuariosRepository;
 
     @Override
-    public EventoResponseDto criarEvento(CriarEventoDto eventoDto, UUID ongId, String perfilUsuario) {
+    public EventoResponseDto criarEvento(CriarEventoDto eventoDto, UUID idOng, String perfilUsuario) {
         // 1. Validação de Permissão (Regra de Negócio)
         if (!"ONG".equalsIgnoreCase(perfilUsuario)) {
             throw new SecurityException("Acesso negado: Somente ONGs podem criar eventos.");
@@ -32,15 +32,15 @@ public class EventoServiceImpl implements EventoService {
 
         // 2. Validação de Existência (Regra de Negócio)
         // Verifica se a ONG que está tentando criar o evento realmente existe no banco.
-        ongUsuariosRepository.findById(ongId)
-                .orElseThrow(() -> new RuntimeException("ONG não encontrada com o ID: " + ongId));
+        ongUsuariosRepository.findById(idOng)
+                .orElseThrow(() -> new RuntimeException("ONG não encontrada com o ID: " + idOng));
 
         // 3. Criação da Entidade
         Evento novoEvento = new Evento();
         novoEvento.setNome(eventoDto.getNome());
         novoEvento.setDataHora(eventoDto.getDataHora());
         novoEvento.setEndereco(eventoDto.getEndereco());
-        novoEvento.setIdOng(ongId); // Associa o evento à ONG logada
+        novoEvento.setIdOng(idOng); // Associa o evento à ONG logada
 
         // 4. Persistência no Banco
         Evento eventoSalvo = eventoRepository.save(novoEvento);
@@ -76,7 +76,7 @@ public class EventoServiceImpl implements EventoService {
                 .nome(evento.getNome())
                 .dataHora(evento.getDataHora())
                 .endereco(evento.getEndereco())
-                .ongId(evento.getIdOng())
+                .idOng(evento.getIdOng())
                 .build();
     }
 }

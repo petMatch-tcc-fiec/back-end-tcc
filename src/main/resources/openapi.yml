@@ -440,6 +440,193 @@ paths:
                 items:
                   $ref: '#/components/schemas/Animal'
 
+  /v1/api/eventos:
+    get:
+      tags:
+        - Eventos
+      summary: Listar todos os eventos
+      description: Retorna lista com todos os eventos de adoção cadastrados
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Lista de eventos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventoResponseDto'
+        '401':
+          description: Token ausente ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+
+    post:
+      tags:
+        - Eventos
+      summary: Criar novo evento
+      description: |
+        **Apenas ONGs podem criar eventos**
+        
+        Cria um novo evento de adoção. O ID da ONG é obtido automaticamente do token JWT.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriarEventoDto'
+            example:
+              titulo: "Adoção em Belo Horizonte"
+              descricao: "Grande evento de adoção com mais de 50 animais"
+              dataEvento: "2025-12-10T10:00:00Z"
+              local: "Praça da Estação, Belo Horizonte"
+      responses:
+        '201':
+          description: Evento criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponseDto'
+        '400':
+          description: Requisição inválida (dados obrigatórios ausentes ou formato incorreto)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Token ausente ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Usuário não possui permissão para criar eventos (apenas ONG)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+
+    /v1/api/eventos/{id}:
+      get:
+        tags:
+          - Eventos
+        summary: Buscar evento por ID
+        description: Retorna os detalhes de um evento específico baseado em seu ID
+        security:
+          - bearerAuth: [ ]
+        parameters:
+          - name: id
+            in: path
+            required: true
+            description: ID único do evento (UUID)
+            schema:
+              type: string
+              format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        responses:
+          '200':
+            description: Evento encontrado e retornado com sucesso
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/EventoResponseDto'
+          '401':
+            description: Token ausente ou inválido
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErroResponse'
+          '404':
+            description: Evento não encontrado
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErroResponse'
+          '500':
+            description: Erro interno do servidor
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErroResponse'
+
+      delete:
+        tags:
+          - Eventos
+        summary: Deletar evento por ID
+        description: |
+          **Apenas a ONG criadora pode deletar seu evento**
+
+          Deleta um evento específico do sistema. O evento é excluído permanentemente.
+        security:
+          - bearerAuth: [ ]
+        parameters:
+          - name: id
+            in: path
+            required: true
+            description: ID único do evento a ser deletado (UUID)
+            schema:
+              type: string
+              format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        responses:
+          '204':
+            description: Evento deletado com sucesso (sem conteúdo na resposta)
+          '401':
+            description: Token ausente ou inválido
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErroResponse'
+          '403':
+            description: Usuário não possui permissão para deletar este evento
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErroResponse'
+          '404':
+            description: Evento não encontrado
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErroResponse'
+          '500':
+            description: Erro interno do servidor
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErroResponse'
+
+  components:
+    securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+        description: |
+          Autenticação com token JWT.
+
+          **Formato:** `Authorization: Bearer {token}`
+
+          O token é obtido através do endpoint `/v1/api/auth/login` e permanece válido por 24 horas.
+
+
 components:
   securitySchemes:
     bearerAuth:
@@ -685,3 +872,138 @@ components:
         observacoesAnimal:
           type: string
           example: "Animal dócil e brincalhão"
+
+    EventoResponseDto:
+      type: object
+      description: Dados de resposta de um evento
+      required:
+        - id
+        - titulo
+        - descricao
+        - dataEvento
+        - local
+        - ongId
+        - ongNome
+        - statusEvento
+        - dataCriacao
+        - dataAtualizacao
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador único do evento
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        titulo:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Título do evento
+          example: "Adoção em Indaiatuba"
+        descricao:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Descrição detalhada do evento
+          example: "Evento de adoção de animais no parque ecológico com atividades para as crianças"
+        dataEvento:
+          type: string
+          format: date-time
+          description: Data e hora do evento (ISO 8601)
+          example: "2025-11-20T10:00:00Z"
+        local:
+          type: string
+          minLength: 5
+          maxLength: 300
+          description: Local onde o evento será realizado
+          example: "Parque Ecológico, Indaiatuba"
+        ongId:
+          type: string
+          format: uuid
+          description: ID da ONG criadora do evento
+          example: "8a8a8a8a-8a8a-8a8a-8a8a-8a8a8a8a8a8a"
+        ongNome:
+          type: string
+          description: Nome da ONG criadora do evento
+          example: "Abrigo Amigos"
+        statusEvento:
+          type: string
+          enum:
+            - ATIVO
+            - CANCELADO
+            - FINALIZADO
+            - ADIADO
+          description: Status atual do evento
+          example: "ATIVO"
+        dataCriacao:
+          type: string
+          format: date-time
+          description: Data e hora de criação do evento (ISO 8601)
+          example: "2025-10-15T14:30:00Z"
+        dataAtualizacao:
+          type: string
+          format: date-time
+          description: Data e hora da última atualização do evento (ISO 8601)
+          example: "2025-10-15T14:30:00Z"
+
+    CriarEventoDto:
+      type: object
+      description: Dados para criar um novo evento
+      required:
+        - titulo
+        - descricao
+        - dataEvento
+        - local
+      properties:
+        titulo:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Título do evento
+          example: "Adoção em Indaiatuba"
+        descricao:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Descrição detalhada do evento
+          example: "Grande evento de adoção com mais de 50 animais disponíveis"
+        dataEvento:
+          type: string
+          format: date-time
+          description: Data e hora do evento (ISO 8601)
+          example: "2025-12-10T10:00:00Z"
+        local:
+          type: string
+          minLength: 5
+          maxLength: 300
+          description: Local onde o evento será realizado
+          example: "Praça, Indaiatuba"
+
+    ErroResponse:
+      type: object
+      description: Resposta de erro padrão da API
+      required:
+        - mensagem
+        - status
+        - timestamp
+      properties:
+        mensagem:
+          type: string
+          description: Mensagem descritiva do erro
+          example: "Campo 'titulo' é obrigatório"
+        status:
+          type: integer
+          description: Código HTTP de status do erro
+          example: 400
+        timestamp:
+          type: string
+          format: date-time
+          description: Data e hora do erro (ISO 8601)
+          example: "2025-10-20T10:35:00Z"
+        detalhes:
+          type: string
+          description: Detalhes adicionais do erro (opcional)
+          example: "Erro ao processar a requisição"
+        campoErro:
+          type: string
+          description: Campo específico com erro (opcional)
+          example: "titulo"

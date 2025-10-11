@@ -1,5 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.features.user.services.impl;
 
+import com.PetMatch.PetMatchBackEnd.features.firebase.models.dto.FcmTokenRequest;
 import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
 import com.PetMatch.PetMatchBackEnd.features.user.models.*;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.AdminUsuariosRepository;
@@ -176,5 +177,19 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         myUserDto.setPicture(usuario.getPicture());
         myUserDto.setEmail(usuario.getEmail());
         return myUserDto;
+    }
+
+    public Usuario updateFcmToken(UUID userId, FcmTokenRequest request) {
+
+        // 1. Busca o usuário pelo ID
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
+
+        System.out.println(userId);
+        // 2. Atualiza o atributo fcmToken
+        usuario.setFcmToken(request.getFcmToken());
+
+        // 3. Salva a alteração (o @Transactional garante que a persistência ocorra)
+        return usuarioRepository.save(usuario);
     }
 }

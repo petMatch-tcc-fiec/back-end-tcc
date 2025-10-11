@@ -48,8 +48,8 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/v1/api/animais/**").hasAuthority("ONG")
-                        .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/usuarios/admin", "/v1/api/usuarios/adotante", "/v1/api/usuarios/ong").permitAll()
+                        .requestMatchers("/v1/api/animais/**", "/v1/api/eventos/**").hasAuthority("ONG")
+                        .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/usuarios/admin", "/v1/api/usuarios/adotante", "/v1/api/usuarios/ong", "/v1/api/notifications/sendToUser").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

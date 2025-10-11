@@ -13,5 +13,5 @@ public class EventoResponseDto {
     private String nome;
     private LocalDateTime dataHora;
     private String endereco;
-    private UUID ongId;
+    private UUID idOng;
 }
