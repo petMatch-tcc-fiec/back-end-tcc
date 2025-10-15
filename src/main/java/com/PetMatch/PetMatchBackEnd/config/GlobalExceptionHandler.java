@@ -1,7 +1,9 @@
 package com.PetMatch.PetMatchBackEnd.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,9 +28,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     /**
      * Trata exceções de validação (MethodArgumentNotValidException)
      */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
             WebRequest request) {
 
         log.warn("Erro de validação detectado: {}", ex.getBindingResult().getFieldError());
