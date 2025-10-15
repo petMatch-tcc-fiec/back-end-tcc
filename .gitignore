@@ -40,8 +40,10 @@ uploads/*
 thumbnails
 thumbnails/*
 
+src/main/resources/firebase-service-account.json
+**/firebase-service-account.json
+
 logs
 logs/**
 
-src/main/resources/firebase-service-account.json
-**/firebase-service-account.json
+
