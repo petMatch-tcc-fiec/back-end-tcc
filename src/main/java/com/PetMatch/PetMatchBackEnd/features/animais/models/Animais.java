@@ -14,7 +14,7 @@ public class Animais {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_animal;
+    private UUID id;
 
     @Column(name = "nome_animal")
     private String nome;
