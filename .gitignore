@@ -47,4 +47,7 @@ firebase-service-account.json
 logs
 logs/**
 
+logstash
+logstash/**
+
 
