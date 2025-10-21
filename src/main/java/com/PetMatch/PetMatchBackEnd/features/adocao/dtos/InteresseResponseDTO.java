@@ -2,10 +2,12 @@ package com.PetMatch.PetMatchBackEnd.features.adocao.dtos;
 
 import com.PetMatch.PetMatchBackEnd.features.adocao.models.AdocaoInteresse;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Setter
 @Getter
 public class InteresseResponseDTO {
 
