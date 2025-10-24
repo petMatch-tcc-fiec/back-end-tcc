@@ -5,11 +5,9 @@ info:
   version: 1.0.0
   contact:
     name: PetMatch Support
-
 servers:
   - url: http://localhost:5000
     description: Servidor de Desenvolvimento
-
 tags:
   - name: Usuários
     description: Gerenciamento de usuários (Admin, Adotante, ONG)
@@ -19,7 +17,10 @@ tags:
     description: Upload e download de imagens
   - name: Autenticação
     description: Login e autenticação JWT
-
+  - name: Eventos
+    description: Gerenciamento de eventos de adoção
+  - name: Adoção
+    description: Gerenciamento do processo de adoção e interesse
 paths:
   /v1/api/auth/register:
     post:
@@ -48,13 +49,12 @@ paths:
           description: Dados inválidos
         '409':
           description: Email já cadastrado
-
   /v1/api/auth/login:
     post:
       tags:
         - Autenticação
       summary: Login de usuário
-      description: Autentica um usuário e retorna um token JWT
+      description: Autentica um usuário (Admin, Adotante ou ONG) e retorna um token JWT
       requestBody:
         required: true
         content:
@@ -71,13 +71,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
-              example:
-                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         '401':
           description: Credenciais inválidas
         '400':
           description: Dados inválidos
-
   /v1/api/auth/loginprova:
     post:
       tags:
@@ -98,7 +95,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
-
   /v1/api/usuarios/admin:
     post:
       tags:
@@ -122,7 +118,6 @@ paths:
           description: Dados inválidos
         '409':
           description: Email já cadastrado
-
   /v1/api/usuarios/adotante:
     post:
       tags:
@@ -155,7 +150,6 @@ paths:
           description: Dados inválidos
         '409':
           description: Email ou CPF já cadastrado
-
   /v1/api/usuarios/ong:
     post:
       tags:
@@ -179,7 +173,6 @@ paths:
           description: Dados inválidos
         '409':
           description: Email já cadastrado
-
   /v1/api/usuarios/me:
     get:
       tags:
@@ -197,7 +190,6 @@ paths:
                 $ref: '#/components/schemas/MyUserDto'
         '401':
           description: Não autenticado
-
   /v1/api/usuarios/photo:
     put:
       tags:
@@ -226,7 +218,6 @@ paths:
           description: Arquivo inválido
         '401':
           description: Não autenticado
-
   /images/{filename}:
     get:
       tags:
@@ -264,11 +255,10 @@ paths:
               schema:
                 type: string
                 format: binary
-        '404':
+        '44':
           description: Imagem não encontrada
         '500':
           description: Erro ao processar imagem
-
   /v1/api/animais:
     get:
       tags:
@@ -287,7 +277,6 @@ paths:
                   $ref: '#/components/schemas/Animal'
         '401':
           description: Não autenticado
-
     post:
       tags:
         - Animais
@@ -314,7 +303,6 @@ paths:
           description: Não autenticado
         '403':
           description: Apenas ONGs podem cadastrar animais
-
   /v1/api/animais/{id}:
     get:
       tags:
@@ -340,7 +328,6 @@ paths:
           description: Animal não encontrado
         '401':
           description: Não autenticado
-
     put:
       tags:
         - Animais
@@ -371,7 +358,6 @@ paths:
           description: Animal não encontrado
         '401':
           description: Não autenticado
-
     delete:
       tags:
         - Animais
@@ -392,7 +378,6 @@ paths:
           description: Animal não encontrado
         '401':
           description: Não autenticado
-
   /v1/api/animais/sexo/{sexo}:
     get:
       tags:
@@ -416,7 +401,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Animal'
-
   /v1/api/animais/raca/{raca}:
     get:
       tags:
@@ -439,7 +423,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Animal'
-
   /v1/api/eventos:
     get:
       tags:
@@ -447,7 +430,7 @@ paths:
       summary: Listar todos os eventos
       description: Retorna lista com todos os eventos de adoção cadastrados
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       responses:
         '200':
           description: Lista de eventos retornada com sucesso
@@ -469,7 +452,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroResponse'
-
     post:
       tags:
         - Eventos
@@ -479,7 +461,7 @@ paths:
         
         Cria um novo evento de adoção. O ID da ONG é obtido automaticamente do token JWT.
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -522,118 +504,191 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroResponse'
+  /v1/api/eventos/{id}:
+    get:
+      tags:
+        - Eventos
+      summary: Buscar evento por ID
+      description: Retorna os detalhes de um evento específico baseado em seu ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID único do evento (UUID)
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Evento encontrado e retornado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponseDto'
+        '401':
+          description: Token ausente ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Evento não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    delete:
+      tags:
+        - Eventos
+      summary: Deletar evento por ID
+      description: |
+        **Apenas a ONG criadora pode deletar seu evento**
 
-    /v1/api/eventos/{id}:
-      get:
-        tags:
-          - Eventos
-        summary: Buscar evento por ID
-        description: Retorna os detalhes de um evento específico baseado em seu ID
-        security:
-          - bearerAuth: [ ]
-        parameters:
-          - name: id
-            in: path
-            required: true
-            description: ID único do evento (UUID)
+        Deleta um evento específico do sistema. O evento é excluído permanentemente.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID único do evento a ser deletado (UUID)
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '204':
+          description: Evento deletado com sucesso (sem conteúdo na resposta)
+        '401':
+          description: Token ausente ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Usuário não possui permissão para deletar este evento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Evento não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /v1/api/adocao/animal/{animalId}/match:
+    post:
+      tags:
+        - Adoção
+      summary: Registrar interesse em um animal
+      description: Registra o interesse do usuário logado (adotante) em um animal específico.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: animalId
+          in: path
+          required: true
+          description: ID do animal (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Interesse registrado com sucesso
+        '401':
+          description: Não autenticado
+        '404':
+          description: Animal ou Usuário não encontrado
+        '409':
+          description: Usuário já demonstrou interesse (IllegalStateException)
+  /v1/api/adocao/animal/{animalId}/lista-espera:
+    get:
+      tags:
+        - Adoção
+      summary: Listar interessados em um animal
+      description: Retorna a lista de usuários (pendentes) interessados em um animal (provavelmente para ONGs).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: animalId
+          in: path
+          required: true
+          description: ID do animal (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de interessados retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InteresseResponseDTO'
+        '401':
+          description: Não autenticado
+        '404':
+          description: Animal não encontrado
+  /v1/api/adocao/interesse/{interesseId}/avaliar:
+    put:
+      tags:
+        - Adoção
+      summary: Avaliar interesse de adoção
+      description: Permite que a ONG aprove ou rejeite um interesse de adoção.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: interesseId
+          in: path
+          required: true
+          description: ID do interesse (UUID)
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
             schema:
-              type: string
-              format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-        responses:
-          '200':
-            description: Evento encontrado e retornado com sucesso
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/EventoResponseDto'
-          '401':
-            description: Token ausente ou inválido
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErroResponse'
-          '404':
-            description: Evento não encontrado
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErroResponse'
-          '500':
-            description: Erro interno do servidor
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErroResponse'
-
-      delete:
-        tags:
-          - Eventos
-        summary: Deletar evento por ID
-        description: |
-          **Apenas a ONG criadora pode deletar seu evento**
-
-          Deleta um evento específico do sistema. O evento é excluído permanentemente.
-        security:
-          - bearerAuth: [ ]
-        parameters:
-          - name: id
-            in: path
-            required: true
-            description: ID único do evento a ser deletado (UUID)
-            schema:
-              type: string
-              format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-        responses:
-          '204':
-            description: Evento deletado com sucesso (sem conteúdo na resposta)
-          '401':
-            description: Token ausente ou inválido
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErroResponse'
-          '403':
-            description: Usuário não possui permissão para deletar este evento
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErroResponse'
-          '404':
-            description: Evento não encontrado
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErroResponse'
-          '500':
-            description: Erro interno do servidor
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErroResponse'
-
-  components:
-    securitySchemes:
-      bearerAuth:
-        type: http
-        scheme: bearer
-        bearerFormat: JWT
-        description: |
-          Autenticação com token JWT.
-
-          **Formato:** `Authorization: Bearer {token}`
-
-          O token é obtido através do endpoint `/v1/api/auth/login` e permanece válido por 24 horas.
-
-
+              $ref: '#/components/schemas/AvaliarInteresseRequest'
+      responses:
+        '200':
+          description: Interesse avaliado com sucesso
+        '400':
+          description: Status inválido (ex: tentar mudar para PENDENTE)
+        '401':
+          description: Não autenticado
+        '404':
+          description: Interesse de adoção não encontrado
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: |
+        Autenticação com token JWT.
 
+        **Formato:** `Authorization: Bearer {token}`
+
+        O token é obtido através do endpoint `/v1/api/auth/login` e permanece válido por 24 horas.
   schemas:
     RegisterAdminDto:
       type: object
@@ -658,7 +713,6 @@ components:
         cpfOuCnpj:
           type: string
           example: "12345678900 ou 12345678000190"
-
     RegisterAdotanteDto:
       type: object
       required:
@@ -694,7 +748,6 @@ components:
         preferencia:
           type: string
           example: "Cachorro de porte pequeno ou médio"
-
     RegisterOngDto:
       type: object
       required:
@@ -721,7 +774,6 @@ components:
           type: string
         telefone:
           type: string
-
     CreatedUsuarioResponse:
       type: object
       properties:
@@ -731,7 +783,6 @@ components:
         userId:
           type: string
           format: uuid
-
     MyUserDto:
       type: object
       properties:
@@ -748,7 +799,6 @@ components:
         accessLevel:
           type: string
           enum: [ADMIN, ADOTANTE, ONG]
-
     RegisterRequest:
       type: object
       required:
@@ -768,7 +818,6 @@ components:
           type: string
           minLength: 3
           example: "João Silva"
-
     LoginRequest:
       type: object
       required:
@@ -782,7 +831,6 @@ components:
         password:
           type: string
           example: "Senha@123"
-
     LoginResponse:
       type: object
       properties:
@@ -790,7 +838,6 @@ components:
           type: string
           description: JWT token para autenticação
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3VhcmlvQGV4ZW1wbG8uY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-
     Usuario:
       type: object
       properties:
@@ -807,7 +854,6 @@ components:
         accessLevel:
           type: string
           enum: [ADMIN, ADOTANTE, ONG]
-
     Animal:
       type: object
       properties:
@@ -839,7 +885,6 @@ components:
         observacoesAnimal:
           type: string
           example: "Animal dócil e brincalhão"
-
     AnimalInput:
       type: object
       required:
@@ -872,7 +917,6 @@ components:
         observacoesAnimal:
           type: string
           example: "Animal dócil e brincalhão"
-
     EventoResponseDto:
       type: object
       description: Dados de resposta de um evento
@@ -944,7 +988,6 @@ components:
           format: date-time
           description: Data e hora da última atualização do evento (ISO 8601)
           example: "2025-10-15T14:30:00Z"
-
     CriarEventoDto:
       type: object
       description: Dados para criar um novo evento
@@ -977,7 +1020,6 @@ components:
           maxLength: 300
           description: Local onde o evento será realizado
           example: "Praça, Indaiatuba"
-
     ErroResponse:
       type: object
       description: Resposta de erro padrão da API
@@ -1007,3 +1049,40 @@ components:
           type: string
           description: Campo específico com erro (opcional)
           example: "titulo"
+    InteresseResponseDTO:
+      type: object
+      description: Dados de resposta para um interesse de adoção
+      properties:
+        interesseId:
+          type: string
+          format: uuid
+          description: ID do registro de interesse
+        usuarioId:
+          type: string
+          format: uuid
+          description: ID do usuário que demonstrou interesse
+        nomeUsuario:
+          type: string
+          description: Nome do usuário
+        dataDeInteresse:
+          type: string
+          format: date-time
+          description: Data e hora que o interesse foi registrado
+    AvaliarInteresseRequest:
+      type: object
+      description: Corpo da requisição para avaliar um interesse
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: O novo status da avaliação (não pode ser PENDENTE)
+          enum: [APROVADO, REJEITADO]
+          example: "APROVADO"
+    AdocaoStatus:
+      type: string
+      description: Enum dos status de adoção
+      enum:
+        - PENDENTE
+        - APROVADO
+        - REJEITADO

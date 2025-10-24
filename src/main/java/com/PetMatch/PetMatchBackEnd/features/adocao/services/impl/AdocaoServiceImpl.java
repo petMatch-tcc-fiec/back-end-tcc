@@ -10,7 +10,11 @@ import com.PetMatch.PetMatchBackEnd.features.animais.repositories.AnimaisReposit
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +24,9 @@ import java.util.stream.Collectors;
 @Service
 public class AdocaoServiceImpl implements AdocaoService {
 
+    private static final Logger log = LoggerFactory.getLogger(AdocaoServiceImpl.class);
+
+
     @Autowired
     private AdocaoInteresseRepository adocaoInteresseRepository;
 
@@ -28,6 +35,9 @@ public class AdocaoServiceImpl implements AdocaoService {
 
     @Autowired
     private UsuarioRepository userRepository;
+
+    @Autowired
+    private JavaMailSender emailSender;
 
     @Override
     public void registrarInteresse(UUID animalId, UUID usuarioId) { // Parâmetros UUID
@@ -71,7 +81,42 @@ public class AdocaoServiceImpl implements AdocaoService {
             throw new IllegalArgumentException("Não é possível alterar o status para PENDENTE.");
         }
 
+        boolean foiAprovado = novoStatus == AdocaoStatus.APROVADO && interesse.getStatus() != AdocaoStatus.APROVADO;
+
         interesse.setStatus(novoStatus);
         adocaoInteresseRepository.save(interesse);
+
+        // Envia o e-mail SE foi aprovado nesta chamada
+        if (foiAprovado) {
+            // Chamada para o método que envia o e-mail
+            enviarEmailAprovacao(interesse);
+        }
+
+        interesse.setStatus(novoStatus);
+        adocaoInteresseRepository.save(interesse);
+    }
+
+    public void enviarEmailAprovacao(AdocaoInteresse interesse) {
+        try {
+            Usuario usuario = interesse.getUsuario();
+            Animais animal = interesse.getAnimal(); // Supondo que você queira o nome do animal
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("noreply@petmatch.com"); // Ou seu e-mail configurado
+            message.setTo(usuario.getEmail()); // Pega o email do usuário associado ao interesse
+            message.setSubject("Parabéns! Sua solicitação de adoção foi aprovada!");
+            message.setText("Olá " + usuario.getName() + ",\n\n" +
+                    "Temos ótimas notícias! Seu interesse em adotar o(a) " + animal.getNome() + " foi aprovado.\n\n" +
+                    "A ONG responsável entrará em contato em breve para os próximos passos.\n\n" +
+                    "Atenciosamente,\n" +
+                    "Equipe PetMatch");
+            emailSender.send(message);
+            log.info("E-mail de aprovação enviado para: {}", usuario.getEmail());
+
+        } catch (Exception e) {
+            // Logar o erro é importante para saber se o e-mail falhou
+            log.error("Erro ao enviar e-mail de aprovação para {}: {}", interesse.getUsuario().getEmail(), e.getMessage());
+            // Você pode querer adicionar um tratamento mais robusto aqui (ex: colocar em uma fila para tentar reenviar)
+        }
     }
 }

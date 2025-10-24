@@ -15,23 +15,17 @@
             <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
 
-        <!-- File Appender (arquivo único com todos os logs) -->
-        <File name="File" fileName="${LOG_DIR}/application.log">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-        </File>
+        <!-- REMOVIDO o <File name="File"> daqui -->
 
-        <!-- Rolling File Appender (rotaciona arquivos por dia) -->
+        <!-- Rolling File Appender (rotaciona arquivos por dia/tamanho) -->
         <RollingFile name="RollingFile"
                      fileName="${LOG_DIR}/application.log"
                      filePattern="${LOG_DIR}/application-%d{yyyy-MM-dd}.%i.log.gz">
             <PatternLayout pattern="${LOG_PATTERN_DETAILED}"/>
             <Policies>
-                <!-- Rotaciona diariamente -->
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-                <!-- Rotaciona quando atingir 100MB -->
                 <SizeBasedTriggeringPolicy size="100MB"/>
             </Policies>
-            <!-- Mantém no máximo 30 arquivos -->
             <DefaultRolloverStrategy max="30"/>
         </RollingFile>
 
@@ -45,13 +39,12 @@
                 <SizeBasedTriggeringPolicy size="100MB"/>
             </Policies>
             <DefaultRolloverStrategy max="30"/>
-            <!-- Filtra apenas ERRO e FATAL -->
             <Filters>
                 <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
         </RollingFile>
 
-        <!-- Appender para logs da aplicação (excludes Spring Framework) -->
+        <!-- Appender para logs da aplicação (ex: com.PetMatch) -->
         <RollingFile name="ApplicationFile"
                      fileName="${LOG_DIR}/petmatch.log"
                      filePattern="${LOG_DIR}/petmatch-%d{yyyy-MM-dd}.%i.log.gz">
