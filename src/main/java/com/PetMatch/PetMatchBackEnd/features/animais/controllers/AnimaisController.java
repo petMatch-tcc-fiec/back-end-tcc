@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@AllArgsConstructor
 @RequestMapping("/v1/api/animais")
 public class AnimaisController {
 
