@@ -2,10 +2,11 @@ package com.PetMatch.PetMatchBackEnd.features.animais.services.impl;
 
 import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
 
-import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalSearch;
 import com.PetMatch.PetMatchBackEnd.features.animais.repositories.AnimaisRepository;
 import com.PetMatch.PetMatchBackEnd.features.animais.services.AnimaisService;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,33 +44,29 @@ public class AnimaisServiceImpl implements AnimaisService{
     }
 
     @Override
-    public List<Animais> findBySexo(String sexo) {
-        return animaisRepository.findBySexo(sexo);
-    }
-
-    @Override
-    public List<Animais> findByRaca(String raca) {
-        return animaisRepository.findByRaca(raca);
-    }
-
-    @Override
-    public List<Animais> findByCor(String cor) {
-        return animaisRepository.findByCor(cor);
-    }
-
-    @Override
-    public List<Animais> findByPorte(String porte) {
-        return animaisRepository.findByPorte(porte);
-    }
-
-    @Override
-    public List<Animais> findByEspecie(String especie) {
-        return animaisRepository.findByEspecie(especie);
-    }
-
-    @Override
     public List<Animais> findAll() {
         return animaisRepository.findAll();
+    }
+
+    @Override
+    public List<Animais> findAllWithQueries(AnimalSearch animalSearch) {
+        List<Animais> meusAnimais = animaisRepository.findAnimais(animalSearch);
+        if(CollectionUtils.isEmpty(meusAnimais)) {
+            return List.of();
+        } else {
+            return meusAnimais.stream().map(
+                    animal -> Animais.builder()
+                            .id(animal.getId())
+                            .nome(animal.getNome())
+                            .idade(animal.getIdade())
+                            .porte(animal.getPorte())
+                            .sexo(animal.getSexo())
+                            .especie(animal.getEspecie())
+                            .raca(animal.getRaca())
+                            .cor(animal.getCor())
+                            .build()
+            ).toList();
+        }
     }
 
     @Override

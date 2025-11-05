@@ -24,7 +24,7 @@ public class Evento {
     @Column(name = "data_hora_eventos", nullable = false)
     private LocalDateTime dataHora;
 
-    @Column(name = "endereco_eventos", nullable = false, length = 300)
+    @Column(name = "endereco_eventos", nullable = false, length = 255)
     private String endereco;
 
     @Column(name = "fl_ongUsuarios_id_ong", nullable = false)

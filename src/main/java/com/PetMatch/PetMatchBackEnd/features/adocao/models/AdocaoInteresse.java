@@ -18,10 +18,11 @@ public class AdocaoInteresse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false, name = "id_eventos")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "animal_id", nullable = false)
+    @JoinColumn(name = "id_animal", nullable = false)
     private Animais animal;
 
     @ManyToOne(fetch = FetchType.LAZY)

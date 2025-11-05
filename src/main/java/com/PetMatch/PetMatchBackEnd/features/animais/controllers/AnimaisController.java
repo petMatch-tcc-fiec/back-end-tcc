@@ -1,7 +1,9 @@
 package com.PetMatch.PetMatchBackEnd.features.animais.controllers;
 
 import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalSearch;
 import com.PetMatch.PetMatchBackEnd.features.animais.services.AnimaisService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/v1/api/animais")
 public class AnimaisController {
 
@@ -41,41 +44,6 @@ public class AnimaisController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // GET - Buscar animais por sexo
-    @GetMapping("/sexo/{sexo}")
-    public ResponseEntity<List<Animais>> getAnimaisBySexo(@PathVariable String sexo) {
-        List<Animais> animais = animaisService.findBySexo(sexo);
-        return ResponseEntity.ok(animais);
-    }
-
-    // GET - Buscar animais por raça
-    @GetMapping("/raca/{raca}")
-    public ResponseEntity<List<Animais>> getAnimaisByRaca(@PathVariable String raca) {
-        List<Animais> animais = animaisService.findByRaca(raca);
-        return ResponseEntity.ok(animais);
-    }
-
-    // GET - Buscar animais por cor
-    @GetMapping("/cor/{cor}")
-    public ResponseEntity<List<Animais>> getAnimaisByCor(@PathVariable String cor) {
-        List<Animais> animais = animaisService.findByCor(cor);
-        return ResponseEntity.ok(animais);
-    }
-
-    // GET - Buscar animais por porte
-    @GetMapping("/porte/{porte}")
-    public ResponseEntity<List<Animais>> getAnimaisByPorte(@PathVariable String porte) {
-        List<Animais> animais = animaisService.findByPorte(porte);
-        return ResponseEntity.ok(animais);
-    }
-
-    // GET - Buscar animais por espécie/tipo
-    @GetMapping("/especie/{especie}")
-    public ResponseEntity<List<Animais>> getAnimaisByEspecie(@PathVariable String especie) {
-        List<Animais> animais = animaisService.findByEspecie(especie);
-        return ResponseEntity.ok(animais);
-    }
-
     // PUT - Atualizar animal
     @PutMapping("/{id}")
     public ResponseEntity<Animais> updateAnimal(
@@ -94,5 +62,10 @@ public class AnimaisController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/filters/all")
+    public List<Animais> getAnimalById(AnimalSearch animalSearch){
+        return animaisService.findAllWithQueries(animalSearch);
     }
 }
