@@ -4,6 +4,7 @@ import com.PetMatch.PetMatchBackEnd.features.firebase.models.dto.FcmTokenRequest
 import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,4 +22,5 @@ public interface UsuarioService{
     void deleteById(UUID id);
     MyUserDto getMe(Usuario usuario);
     Usuario updateFcmToken(UUID userId, FcmTokenRequest request);
+    void createUsers(InputStream inputStream);
 }

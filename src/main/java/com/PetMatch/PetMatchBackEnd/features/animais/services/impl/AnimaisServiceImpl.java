@@ -1,13 +1,11 @@
 package com.PetMatch.PetMatchBackEnd.features.animais.services.impl;
 
 import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
-
 import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalSearch;
 import com.PetMatch.PetMatchBackEnd.features.animais.repositories.AnimaisRepository;
 import com.PetMatch.PetMatchBackEnd.features.animais.services.AnimaisService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,17 +21,18 @@ public class AnimaisServiceImpl implements AnimaisService{
     }
 
     public Animais create(Animais registerAnimais) {
-        Animais animal = new Animais();
-        animal.setNome(registerAnimais.getNome());
-        animal.setIdade(registerAnimais.getIdade());
-        animal.setPorte(registerAnimais.getPorte());
-        animal.setSexo(registerAnimais.getSexo());
-        animal.setEspecie(registerAnimais.getEspecie());
-        animal.setRaca(registerAnimais.getRaca());
-        animal.setCor(registerAnimais.getCor());
-        animal.setObservacoesAnimal(registerAnimais.getObservacoesAnimal());
-        animal.setFichaMedicaAnimal(registerAnimais.getFichaMedicaAnimal());
-        animal.setFotosAnimais(registerAnimais.getFotosAnimais());
+        Animais animal = Animais.builder()
+                .nome(registerAnimais.getNome())
+                .idade(registerAnimais.getIdade())
+                .porte(registerAnimais.getPorte())
+                .sexo(registerAnimais.getSexo())
+                .especie(registerAnimais.getEspecie())
+                .raca(registerAnimais.getRaca())
+                .cor(registerAnimais.getCor())
+                .observacoesAnimal(registerAnimais.getObservacoesAnimal())
+                .fichaMedicaAnimal(registerAnimais.getFichaMedicaAnimal())
+                .fotosAnimais(registerAnimais.getFotosAnimais())
+                .build();
 
         return animaisRepository.save(animal);
     }
@@ -86,8 +85,7 @@ public class AnimaisServiceImpl implements AnimaisService{
             return animaisRepository.save(animais);
         });
     }
-
-
+    
     @Override
     public void deleteById(UUID id) {
         animaisRepository.deleteById(id);

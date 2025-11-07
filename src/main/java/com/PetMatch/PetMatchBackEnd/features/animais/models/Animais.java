@@ -1,10 +1,8 @@
 package com.PetMatch.PetMatchBackEnd.features.animais.models;
 
-import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

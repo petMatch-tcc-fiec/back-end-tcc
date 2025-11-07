@@ -9,12 +9,18 @@ import com.PetMatch.PetMatchBackEnd.features.user.repositories.OngUsuariosReposi
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.UsuarioRepository;
 import com.PetMatch.PetMatchBackEnd.features.user.services.UsuarioService;
 import com.PetMatch.PetMatchBackEnd.utils.PasswordEncryptor;
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -191,5 +197,76 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
 
         // 3. Salva a alteração (o @Transactional garante que a persistência ocorra)
         return usuarioRepository.save(usuario);
+    }
+
+    @Override
+    public void createUsers(InputStream inputStream) {
+        List<UsuarioCsvRepresentation> users = new ArrayList<>();
+        try (Reader reader = new InputStreamReader(inputStream)) {
+
+            // Create a CsvToBean object from the Reader
+            CsvToBean<UsuarioCsvRepresentation> csvToBean = new CsvToBeanBuilder(reader)
+                    .withType(UsuarioCsvRepresentation.class) // Specify the target bean class
+                    .withIgnoreLeadingWhiteSpace(true) // Clean up any extra spaces
+                    .withSkipLines(0) // Skips the header row if present
+                    .build();
+
+            // Parse the data and return a List of beans
+            users = csvToBean.parse();
+        } catch (Exception e) {
+            // Handle IO or CSV parsing exceptions
+            throw new RuntimeException("Failed to parse CSV file: " + e.getMessage(), e);
+        }
+
+        try {
+
+            for (UsuarioCsvRepresentation csvUser : users) {
+                Usuario usuario = new Usuario();
+                usuario.setEmail(csvUser.getEmail());
+                usuario.setName(csvUser.getName());
+                usuario.setPassword(PasswordEncryptor.encrypt(csvUser.getPassword()));
+                UserLevel level = UserLevel.valueOf(csvUser.getAccessLevel());
+                usuario.setAccessLevel(level);
+                save(usuario);
+                switch (level) {
+                    case UserLevel.ADOTANTE:
+                        AdotanteUsuarios adotante = new AdotanteUsuarios();
+
+                        adotante.setUsuario(usuario);
+                        adotante.setCpfAdotante(csvUser.getCpfAdotante());
+                        adotante.setEnderecoAdotante(csvUser.getEnderecoAdotante());
+                        adotante.setCelularAdotante(csvUser.getCelularAdotante());
+                        adotante.setDescricaoOutrosAnimais(csvUser.getDescricaoOutrosAnimais());
+                        adotante.setPreferencia(csvUser.getPreferencia());
+                        adotanteUsuariosRepository.save(adotante);
+                        break;
+                    case UserLevel.ADMIN:
+                        AdminUsuarios admin = new AdminUsuarios();
+
+                        admin.setUsuario(usuario);
+                        admin.setCpfOuCnpjAdmin(csvUser.getCnpjOuCnpjAdmin());
+                        adminUsuariosRepository.save(admin);
+                        break;
+
+                    case UserLevel.ONG:
+                        OngUsuarios ong = new OngUsuarios();
+                        ong.setUsuario(usuario);
+                        ong.setEnderecoOng(csvUser.getEnderecoOng());
+                        ong.setTelefoneOng(csvUser.getTelefoneOng());
+                        ong.setCelularOng(csvUser.getCelularOng());
+                        ong.setCnpjOng(csvUser.getCnpjOng());
+                        ongUsuariosRepository.save(ong);
+
+                        break;
+                    default:
+                        break;
+
+                }
+
+            }
+        }catch (Exception ex){
+            throw new RuntimeException("Failed to parse CSV file: " + ex.getMessage(), ex);
+
+        }
     }
 }

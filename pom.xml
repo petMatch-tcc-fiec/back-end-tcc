@@ -145,10 +145,24 @@
             <artifactId>flyway-mysql</artifactId>
             <version>11.15.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version> <!-- Use the latest stable version -->
+        </dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>11.15.0</version>
+                <configuration>
+                    <baselineOnMigrate>true</baselineOnMigrate>
+                    <!-- Other configurations like url, user, password, locations -->
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
