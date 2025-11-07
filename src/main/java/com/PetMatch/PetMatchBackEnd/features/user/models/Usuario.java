@@ -1,18 +1,21 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"password", "fcmToken"})
 @Entity
+@Table(name = "Usuarios")
 public class Usuario implements UserDetails {
 
     @Id
@@ -26,7 +29,7 @@ public class Usuario implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "senha_usuario")
     private String password;
 
     @Column
@@ -35,7 +38,8 @@ public class Usuario implements UserDetails {
     @Column
     private String fcmToken;
 
-    @Column
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private RegisterState state;
 
     @Enumerated(EnumType.STRING)
@@ -44,13 +48,23 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(accessLevel.name()));
-        return authorities;
+        return List.of(new SimpleGrantedAuthority(accessLevel.name()));
     }
 
     @Override
     public String getUsername() {
         return email;
     }
+
+    @Override
+    public boolean isAccountNonExpired() { return true; }
+
+    @Override
+    public boolean isAccountNonLocked() { return true; }
+
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
+
+    @Override
+    public boolean isEnabled() { return true; }
 }

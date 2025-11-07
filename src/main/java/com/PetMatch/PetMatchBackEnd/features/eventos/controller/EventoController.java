@@ -2,10 +2,17 @@ package com.PetMatch.PetMatchBackEnd.features.eventos.controller;
 
 import com.PetMatch.PetMatchBackEnd.features.eventos.dto.CriarEventoDto;
 import com.PetMatch.PetMatchBackEnd.features.eventos.dto.EventoResponseDto;
-import com.PetMatch.PetMatchBackEnd.features.eventos.model.Evento;
 import com.PetMatch.PetMatchBackEnd.features.eventos.service.EventoService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,38 +23,80 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/api/eventos")
 @AllArgsConstructor
+@Tag(name = "Eventos", description = "Endpoints para gerenciamento de eventos da plataforma PetMatch.")
 public class EventoController {
 
+    private final EventoService eventoService;
 
-    private EventoService eventoService;
-
+    @Operation(
+            summary = "Listar todos os eventos",
+            description = "Retorna uma lista com todos os eventos cadastrados no sistema.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Lista de eventos retornada com sucesso",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EventoResponseDto.class)))
+            }
+    )
     @GetMapping
     public ResponseEntity<List<EventoResponseDto>> listarEventos() {
         return ResponseEntity.ok(eventoService.listarTodosEventos());
     }
 
+    @Operation(
+            summary = "Criar novo evento",
+            description = "Cria um novo evento vinculado à ONG logada (simulado neste exemplo).",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Evento criado com sucesso",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EventoResponseDto.class))),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos para criação do evento")
+            }
+    )
     @PostMapping
-    public ResponseEntity<EventoResponseDto> criarNovoEvento(@RequestBody CriarEventoDto eventoDto) {
-        // IMPORTANTE: Em um sistema real, o ID e o perfil do usuário viriam
-        // de um sistema de autenticação (ex: JWT Token).
-        // Aqui, vamos simular para o exemplo.
-        UUID idDaOngLogada = UUID.fromString("8a8a8a8a-8a8a-8a8a-8a8a-8a8a8a8a8a8a"); // Exemplo: ID da ONG logada
-        String perfilDaOng = "ONG"; // Exemplo: Perfil da ONG logada
+    public ResponseEntity<EventoResponseDto> criarNovoEvento(
+            @RequestBody CriarEventoDto eventoDto) {
+
+        // Simulação de ONG logada (em produção, viria via token JWT)
+        UUID idDaOngLogada = UUID.fromString("8a8a8a8a-8a8a-8a8a-8a8a-8a8a8a8a8a8a");
+        String perfilDaOng = "ONG";
 
         EventoResponseDto novoEvento = eventoService.criarEvento(eventoDto, idDaOngLogada, perfilDaOng);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoEvento);
     }
 
+    @Operation(
+            summary = "Buscar evento por ID",
+            description = "Retorna os detalhes de um evento específico, com base no seu ID.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Evento encontrado",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EventoResponseDto.class))),
+                    @ApiResponse(responseCode = "404", description = "Evento não encontrado")
+            }
+    )
     @GetMapping("/{id}")
-    public ResponseEntity<EventoResponseDto> buscarEventoPorId(@PathVariable UUID id) {
+    public ResponseEntity<EventoResponseDto> buscarEventoPorId(
+            @Parameter(description = "ID do evento", example = "a3f1e6d5-7c2b-4a89-8ef1-123456789abc")
+            @PathVariable UUID id) {
         return eventoService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(
+            summary = "Deletar evento",
+            description = "Remove um evento do sistema com base em seu ID.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Evento deletado com sucesso"),
+                    @ApiResponse(responseCode = "404", description = "Evento não encontrado")
+            }
+    )
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarEvento(@PathVariable UUID id) {
+    public ResponseEntity<Void> deletarEvento(
+            @Parameter(description = "ID do evento a ser deletado", example = "a3f1e6d5-7c2b-4a89-8ef1-123456789abc")
+            @PathVariable UUID id) {
         eventoService.deletarPorId(id);
-        return ResponseEntity.noContent().build(); // Retorna status 204 No Content
+        return ResponseEntity.noContent().build();
     }
 }
+

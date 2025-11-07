@@ -1,13 +1,8 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,31 +10,38 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "AdotanteUsuarios")
-public class AdotanteUsuarios extends UsuarioSistema{
+@Schema(description = "Entidade que representa um usuário adotante no sistema.")
+public class AdotanteUsuarios extends UsuarioSistema {
 
-    @Column(name = "nome_adotante")
+    @Schema(description = "Nome completo do adotante.", example = "Fernanda Oliveira")
+    @Column(name = "nome_adotante", nullable = false)
     private String nomeAdotante;
 
+    @Schema(description = "CPF único do adotante.", example = "123.456.789-10")
     @Column(unique = true, nullable = false, name = "cpf_adotante")
     private String cpfAdotante;
 
+    @Schema(description = "Endereço residencial do adotante.", example = "Rua das Palmeiras, 123 - Indaiatuba/SP")
     @Column(name = "endereco_adotante")
     private String enderecoAdotante;
 
+    @Schema(description = "Número de celular para contato.", example = "(19) 99999-1234")
     @Column(nullable = false, name = "celular_adotante")
     private String celularAdotante;
 
+    @Schema(description = "E-mail único do adotante.", example = "fernanda.oliveira@email.com")
     @Column(unique = true, nullable = false, name = "email_adotante")
     private String emailAdotante;
 
+    @Schema(description = "Senha criptografada do adotante.", example = "$2a$10$XyZ123...")
     @Column(nullable = false, name = "senha_adotante")
     private String senhaAdotante;
 
+    @Schema(description = "Descrição sobre outros animais que o adotante possui.", example = "Tenho um gato adulto e um cachorro de pequeno porte.")
     @Column(name = "descricao_outros_animais")
     private String descricaoOutrosAnimais;
 
-    @Column
+    @Schema(description = "Preferência de adoção (ex: filhote, adulto, porte pequeno).", example = "Filhote de porte pequeno")
+    @Column(name = "preferencia")
     private String preferencia;
-
-
 }

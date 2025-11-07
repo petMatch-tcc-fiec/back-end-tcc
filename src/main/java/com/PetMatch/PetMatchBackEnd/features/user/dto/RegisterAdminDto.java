@@ -1,13 +1,19 @@
 package com.PetMatch.PetMatchBackEnd.features.user.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class RegisterAdminDto extends UsuarioDto{
+@Schema(description = "Objeto usado para registrar um administrador no sistema.")
+public class RegisterAdminDto extends UsuarioDto {
 
-    @NotNull
-    String cpfOuCnpj;
+    @NotNull(message = "O campo 'cpfOuCnpj' é obrigatório.")
+    @Schema(
+            description = "CPF ou CNPJ do administrador. Deve ser informado conforme o tipo de cadastro.",
+            example = "123.456.789-00"
+    )
+    private String cpfOuCnpj;
 }
