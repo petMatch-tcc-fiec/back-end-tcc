@@ -11,6 +11,7 @@ import com.PetMatch.PetMatchBackEnd.features.user.services.UsuarioService;
 import com.PetMatch.PetMatchBackEnd.utils.PasswordEncryptor;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -94,7 +95,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         admin.setCpfOuCnpjAdmin(registerAdminDto.getCpfOuCnpj());
         AdminUsuarios savedAdmin = adminUsuariosRepository.save(admin);
         return CreatedUsuarioResponseDto.builder()
-                .id(String.valueOf(savedAdmin.getIdAdmin()))
+                .id(String.valueOf(savedAdmin.getId()))
                 .userId(String.valueOf(savedUser.getId()))
                 .build();
     }
@@ -122,7 +123,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         adotante.setPreferencia(registerAdotanteDto.getPreferencia());
         AdotanteUsuarios savedAdotante = adotanteUsuariosRepository.save(adotante);
         return CreatedUsuarioResponseDto.builder()
-                .id(String.valueOf(savedAdotante.getIdAdotante()))
+                .id(String.valueOf(savedAdotante.getId()))
                 .userId(String.valueOf(savedUser.getId()))
                 .build();
     }
@@ -149,7 +150,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         ong.setCnpjOng(registerOngDto.getCnpj());
         OngUsuarios savedOng = ongUsuariosRepository.save(ong);
         return CreatedUsuarioResponseDto.builder()
-                .id(String.valueOf(savedOng.getIdOng()))
+                .id(String.valueOf(savedOng.getId()))
                 .userId(String.valueOf(savedUser.getId()))
                 .build();
     }
@@ -200,6 +201,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public void createUsers(InputStream inputStream) {
         List<UsuarioCsvRepresentation> users = new ArrayList<>();
         try (Reader reader = new InputStreamReader(inputStream)) {

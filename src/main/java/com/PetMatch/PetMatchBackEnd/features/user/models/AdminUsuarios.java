@@ -13,11 +13,6 @@ import java.util.UUID;
 @Table(name = "AdminUsuarios")
 public class AdminUsuarios extends UsuarioSistema{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false, name = "id_admin")
-    private UUID idAdmin;
-
     @Column(name = "nome_admin")
     private String nomeAdmin;
 

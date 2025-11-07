@@ -17,11 +17,6 @@ import java.util.UUID;
 @Table(name = "AdotanteUsuarios")
 public class AdotanteUsuarios extends UsuarioSistema{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false, name = "id_adotante")
-    private UUID idAdotante;
-
     @Column(name = "nome_adotante")
     private String nomeAdotante;
 
