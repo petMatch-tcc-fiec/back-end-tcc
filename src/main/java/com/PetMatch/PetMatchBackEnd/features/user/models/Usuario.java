@@ -13,9 +13,8 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"password", "fcmToken"})
 @Entity
-@Table(name = "Usuarios")
+@Table(name = "usuarios")
 public class Usuario implements UserDetails {
 
     @Id
@@ -29,21 +28,21 @@ public class Usuario implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false, name = "senha_usuario")
+    @Column(nullable = false)
     private String password;
 
     @Column
     private String picture;
 
-    @Column
+    @Column(name = "fcm_token")
     private String fcmToken;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, name = "register_state")
     private RegisterState state;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, name = "access_level")
     private UserLevel accessLevel;
 
     @Override

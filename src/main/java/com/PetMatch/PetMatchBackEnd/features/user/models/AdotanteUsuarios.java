@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "AdotanteUsuarios")
+@Table(name = "adotanteusuarios")
 @Schema(description = "Entidade que representa um usuário adotante no sistema.")
 public class AdotanteUsuarios extends UsuarioSistema {
 

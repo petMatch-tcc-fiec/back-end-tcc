@@ -80,12 +80,13 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     public CreatedUsuarioResponseDto saveAdmin(RegisterAdminDto registerAdminDto) {
         String email = registerAdminDto.getEmail();
         if(findByEmail(email).isPresent()){
-            throw new RuntimeException();
+            throw new IllegalArgumentException("O e-mail '" + email + "' já está cadastrado no sistema.");
         }
         Usuario usuario = new Usuario();
         usuario.setEmail(registerAdminDto.getEmail());
         usuario.setPassword(PasswordEncryptor.encrypt(registerAdminDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ADMIN);
+        usuario.setState(RegisterState.USER_CREATED);
         Usuario savedUser = save(usuario);
         AdminUsuarios admin = new AdminUsuarios();
         admin.setUsuario(savedUser);
@@ -104,12 +105,13 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     public CreatedUsuarioResponseDto saveAdotante(RegisterAdotanteDto registerAdotanteDto) {
         String email = registerAdotanteDto.getEmail();
         if(findByEmail(email).isPresent()) {
-            throw new RuntimeException();
+            throw new IllegalArgumentException("O e-mail '" + email + "' já está cadastrado no sistema.");
         }
         Usuario usuario = new Usuario();
         usuario.setEmail(registerAdotanteDto.getEmail());
         usuario.setPassword(PasswordEncryptor.encrypt(registerAdotanteDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ADOTANTE);
+        usuario.setState(RegisterState.USER_CREATED);
         Usuario savedUser = save(usuario);
         AdotanteUsuarios adotante = new AdotanteUsuarios();
         adotante.setUsuario(savedUser);
@@ -132,12 +134,13 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     public CreatedUsuarioResponseDto saveOng(RegisterOngDto registerOngDto) {
         String email = registerOngDto.getEmail();
         if(findByEmail(email).isPresent()) {
-            throw new RuntimeException();
+            throw new IllegalArgumentException("O e-mail '" + email + "' já está cadastrado no sistema.");
         }
         Usuario usuario = new Usuario();
         usuario.setEmail(registerOngDto.getEmail());
         usuario.setPassword(PasswordEncryptor.encrypt(registerOngDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ONG);
+        usuario.setState(RegisterState.USER_CREATED);
         Usuario savedUser = save(usuario);
         OngUsuarios ong = new OngUsuarios();
         ong.setUsuario(savedUser);
@@ -166,17 +169,17 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         MyUserDto myUserDto = null;
         if(UserLevel.ADMIN.equals(tipoUsuario)){
             AdminUsuarios admin = adminUsuariosRepository.findByUsuario(usuario).orElseThrow();
-            myUserDto = new MyUserDto();
+            myUserDto = MyUserDto.builder().build();
             myUserDto.setCnpj(admin.getCpfOuCnpjAdmin());
             myUserDto.setTipo("ADMIN");
         } else if(UserLevel.ONG.equals(tipoUsuario)){
             OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuario).orElseThrow();
-            myUserDto = new MyUserDto();
+            myUserDto = MyUserDto.builder().build();
             myUserDto.setCnpj(ong.getCnpjOng());
             myUserDto.setTipo("ONG");
         } else {
             AdotanteUsuarios adotanteUsuarios = adotanteUsuariosRepository.findByUsuario(usuario).orElseThrow();
-            myUserDto = new MyUserDto();
+            myUserDto = MyUserDto.builder().build();
             myUserDto.setCpf(adotanteUsuarios.getCpfAdotante());
             myUserDto.setNome(adotanteUsuarios.getNomeAdotante());
             myUserDto.setTipo("ADOTANTE");
@@ -266,7 +269,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                 }
 
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             throw new RuntimeException("Failed to parse CSV file: " + ex.getMessage(), ex);
 
         }

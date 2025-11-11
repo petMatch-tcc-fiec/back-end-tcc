@@ -1,5 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.features.animais.models;
 
+import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -22,7 +23,6 @@ public class Animais {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false, name = "id_animal")
-    @Schema(description = "Identificador único do animal.", example = "550e8400-e29b-41d4-a716-446655440000")
     private UUID id;
 
     @Column(name = "nome_animal")
@@ -57,6 +57,11 @@ public class Animais {
     @Schema(description = "Observações adicionais sobre o animal, como comportamento ou necessidades especiais.",
             example = "Muito dócil e se dá bem com outros cães.")
     private String observacoesAnimal;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "fk_ongUsuarios_id", nullable = false)
+    @Schema(description = "ONG responsável por este animal.")
+    private OngUsuarios ong;
 
     @OneToOne(mappedBy = "animal", cascade = CascadeType.ALL)
     @Schema(description = "Ficha médica do animal.", implementation = FichaMedicaAnimal.class)

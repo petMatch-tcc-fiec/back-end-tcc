@@ -74,26 +74,36 @@ public class AdocaoServiceImpl implements AdocaoService {
 
     @Override
     public void avaliarInteresse(UUID interesseId, AdocaoStatus novoStatus) { // Parâmetro UUID
-        AdocaoInteresse interesse = adocaoInteresseRepository.findById(interesseId) // findById com UUID
+        AdocaoInteresse interesse = adocaoInteresseRepository.findById(interesseId)
                 .orElseThrow(() -> new EntityNotFoundException("Interesse de adoção não encontrado com o ID: " + interesseId));
 
         if (novoStatus == AdocaoStatus.PENDENTE) {
             throw new IllegalArgumentException("Não é possível alterar o status para PENDENTE.");
         }
 
+        // 1. Lógica para APROVAÇÃO
+        // Verifica se houve uma transição para APROVADO (e se não estava APROVADO antes)
         boolean foiAprovado = novoStatus == AdocaoStatus.APROVADO && interesse.getStatus() != AdocaoStatus.APROVADO;
 
+        // 2. Lógica para REJEIÇÃO
+        // Verifica se houve uma transição para REPROVADO (e se não estava REPROVADO antes)
+        boolean foiRejeitado = novoStatus == AdocaoStatus.REJEITADO && interesse.getStatus() != AdocaoStatus.REJEITADO;
+
+        // Atualiza o status e salva no banco de dados
         interesse.setStatus(novoStatus);
         adocaoInteresseRepository.save(interesse);
 
-        // Envia o e-mail SE foi aprovado nesta chamada
+        // Envio de E-mails:
+
         if (foiAprovado) {
-            // Chamada para o método que envia o e-mail
+            // Método que você já deve ter:
             enviarEmailAprovacao(interesse);
         }
 
-        interesse.setStatus(novoStatus);
-        adocaoInteresseRepository.save(interesse);
+        // Novo bloco para enviar e-mail de REJEIÇÃO
+        if (foiRejeitado) {
+            enviarEmailReprovacao(interesse); // 👈 NOVO MÉTODO
+        }
     }
 
     public void enviarEmailAprovacao(AdocaoInteresse interesse) {
@@ -116,6 +126,28 @@ public class AdocaoServiceImpl implements AdocaoService {
         } catch (Exception e) {
             // Logar o erro é importante para saber se o e-mail falhou
             log.error("Erro ao enviar e-mail de aprovação para {}: {}", interesse.getUsuario().getEmail(), e.getMessage());
+            // Você pode querer adicionar um tratamento mais robusto aqui (ex: colocar em uma fila para tentar reenviar)
+        }
+    }
+    public void enviarEmailReprovacao(AdocaoInteresse interesse) {
+        try {
+            Usuario usuario = interesse.getUsuario();
+            Animais animal = interesse.getAnimal(); // Supondo que você queira o nome do animal
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("noreply@petmatch.com"); // Ou seu e-mail configurado
+            message.setTo(usuario.getEmail()); // Pega o email do usuário associado ao interesse
+            message.setSubject("Que pena! Sua solicitação de adoção foi reprovada!");
+            message.setText("Olá " + usuario.getName() + ",\n\n" +
+                    "Temos más notícias! Seu interesse em adotar o(a) " + animal.getNome() + " foi reprovado.\n\n" +
+                    "Atenciosamente,\n" +
+                    "Equipe PetMatch");
+            emailSender.send(message);
+            log.info("E-mail de reprovação enviado para: {}", usuario.getEmail());
+
+        } catch (Exception e) {
+            // Logar o erro é importante para saber se o e-mail falhou
+            log.error("Erro ao enviar e-mail de reprovação para {}: {}", interesse.getUsuario().getEmail(), e.getMessage());
             // Você pode querer adicionar um tratamento mais robusto aqui (ex: colocar em uma fila para tentar reenviar)
         }
     }

@@ -1,15 +1,19 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
+import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "OngUsuarios")
+@Table(name = "ongusuarios")
 @Schema(description = "Entidade que representa uma ONG cadastrada no sistema.")
 public class OngUsuarios extends UsuarioSistema {
 
@@ -40,4 +44,8 @@ public class OngUsuarios extends UsuarioSistema {
     @Schema(description = "CNPJ único da ONG.", example = "12.345.678/0001-99")
     @Column(unique = true, nullable = false, name = "cnpj_ong")
     private String cnpjOng;
+
+    @OneToMany(mappedBy = "ong", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Schema(description = "Lista de animais associados a esta ONG.", implementation = Animais.class)
+    private List<Animais> animais = new ArrayList<>();
 }

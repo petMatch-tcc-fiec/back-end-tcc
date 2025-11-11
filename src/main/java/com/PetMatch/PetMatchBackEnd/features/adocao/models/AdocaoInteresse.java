@@ -23,7 +23,7 @@ public class AdocaoInteresse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false, name = "id_eventos")
+    @Column(updatable = false, nullable = false, name = "id_interesse")
     @Schema(
             description = "Identificador único do registro de interesse de adoção.",
             example = "550e8400-e29b-41d4-a716-446655440000"

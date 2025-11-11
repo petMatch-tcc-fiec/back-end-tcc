@@ -9,7 +9,7 @@ import lombok.*;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "AdminUsuarios")
+@Table(name = "adminusuarios")
 @Schema(description = "Entidade que representa um usuário administrador do sistema.")
 public class AdminUsuarios extends UsuarioSistema {
 
