@@ -1,6 +1,8 @@
 package com.PetMatch.PetMatchBackEnd.features.animais.controllers;
 
 import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalRegisterDto;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalResponseDto;
 import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalSearch;
 import com.PetMatch.PetMatchBackEnd.features.animais.services.AnimaisService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,8 +12,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,12 +42,13 @@ public class AnimaisController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Animais.class))
     )
     @PostMapping
-    public ResponseEntity<Animais> createAnimal(
-            @RequestBody
+    public ResponseEntity<AnimalResponseDto> create(
+            @Valid @RequestBody
             @Parameter(description = "Dados do novo animal a ser cadastrado")
-            Animais animais
+            AnimalRegisterDto animais,
+            Authentication authentication
     ) {
-        Animais novoAnimal = animaisService.create(animais);
+        AnimalResponseDto novoAnimal = animaisService.create(animais, authentication); // ✅ Retorna DTO
         return ResponseEntity.status(HttpStatus.CREATED).body(novoAnimal);
     }
 

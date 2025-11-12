@@ -1,8 +1,12 @@
 package com.PetMatch.PetMatchBackEnd.features.user.models;
 
+import com.PetMatch.PetMatchBackEnd.features.animais.models.FotosAnimais;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -44,4 +48,7 @@ public class AdotanteUsuarios extends UsuarioSistema {
     @Schema(description = "Preferência de adoção (ex: filhote, adulto, porte pequeno).", example = "Filhote de porte pequeno")
     @Column(name = "preferencia")
     private String preferencia;
+
+    @OneToMany(mappedBy = "adotanteUsuarios", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FotosAdotante> fotosAdotantes = new ArrayList<>();
 }
