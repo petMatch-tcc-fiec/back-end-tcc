@@ -23,7 +23,7 @@ public class MyUserDto {
     @Schema(description = "Número do CPF (caso seja pessoa física).", example = "123.456.789-00")
     private String cpf;
 
-    @Schema(description = "Tipo do usuário (ex: ADMIN, ONG, ADOTANTE).", example = "ONG")
+    @Schema(description = "Tipo do usuário (ex: ADMIN, ONG, ADOTANTE).")
     private String tipo;
 
     @Schema(description = "URL da foto de perfil do usuário.")

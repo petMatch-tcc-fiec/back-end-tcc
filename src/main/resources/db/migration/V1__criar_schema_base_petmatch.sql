@@ -94,10 +94,10 @@ CREATE TABLE `animais` (
     `raca_animal` varchar(50) DEFAULT NULL,
     `cor_animal` varchar(50) DEFAULT NULL,
     `observacoes_animal` varchar(255) DEFAULT NULL,
-    `fk_ongUsuarios_id_ong` binary(16) NOT NULL,
+    `fk_ongusuarios_id_ong` binary(16) NOT NULL,
     PRIMARY KEY (`id_animal`),
-    KEY `fk_animal_ong` (`fk_ongUsuarios_id_ong`),
-    CONSTRAINT `fk_animal_ong` FOREIGN KEY (`fk_ongUsuarios_id_ong`) REFERENCES `ongusuarios` (`id`)
+    KEY `fk_animal_ong` (`fk_ongusuarios_id_ong`),
+    CONSTRAINT `fk_animal_ong` FOREIGN KEY (`fk_ongusuarios_id_ong`) REFERENCES `ongusuarios` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -105,12 +105,12 @@ CREATE TABLE `animais` (
 --
 CREATE TABLE `adocao` (
     `fk_animais_id_animal` binary(16) NOT NULL,
-    `fk_adotanteUsuarios_id_adotante` binary(16) NOT NULL,
+    `fk_adotanteusuarios_id_adotante` binary(16) NOT NULL,
     `data_adocao` date NOT NULL,
     `adocao_status` char(1) NOT NULL,
-    PRIMARY KEY (`fk_animais_id_animal`,`fk_adotanteUsuarios_id_adotante`),
-    KEY `fk_adotam_adotante` (`fk_adotanteUsuarios_id_adotante`),
-    CONSTRAINT `fk_adotam_adotante` FOREIGN KEY (`fk_adotanteUsuarios_id_adotante`) REFERENCES `adotanteusuarios` (`id`),
+    PRIMARY KEY (`fk_animais_id_animal`,`fk_adotanteusuarios_id_adotante`),
+    KEY `fk_adotam_adotante` (`fk_adotanteusuarios_id_adotante`),
+    CONSTRAINT `fk_adotam_adotante` FOREIGN KEY (`fk_adotanteusuarios_id_adotante`) REFERENCES `adotanteusuarios` (`id`),
     CONSTRAINT `fk_adotam_animal` FOREIGN KEY (`fk_animais_id_animal`) REFERENCES `animais` (`id_animal`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -121,12 +121,12 @@ CREATE TABLE `adocao_interesse` (
     `id_interesse` binary(16) NOT NULL,
     `data_de_criacao` datetime NOT NULL,
     `fk_animais_id_animal` binary(16) NOT NULL,
-    `fk_adotanteUsuarios_id_adotante` binary(16) NOT NULL,
+    `fk_adotanteusuarios_id_adotante` binary(16) NOT NULL,
     PRIMARY KEY (`id_interesse`),
-    UNIQUE KEY `unq_adocao_interesse` (`fk_animais_id_animal`,`fk_adotanteUsuarios_id_adotante`),
-    KEY `fk_usuario_interesse` (`fk_adotanteUsuarios_id_adotante`),
+    UNIQUE KEY `unq_adocao_interesse` (`fk_animais_id_animal`,`fk_adotanteusuarios_id_adotante`),
+    KEY `fk_usuario_interesse` (`fk_adotanteusuarios_id_adotante`),
     CONSTRAINT `fk_animal_interesse` FOREIGN KEY (`fk_animais_id_animal`) REFERENCES `animais` (`id_animal`),
-    CONSTRAINT `fk_usuario_interesse` FOREIGN KEY (`fk_adotanteUsuarios_id_adotante`) REFERENCES `adotanteusuarios` (`id`)
+    CONSTRAINT `fk_usuario_interesse` FOREIGN KEY (`fk_adotanteusuarios_id_adotante`) REFERENCES `adotanteusuarios` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -137,10 +137,10 @@ CREATE TABLE `eventos` (
     `nome_evento` varchar(255) NOT NULL,
     `data_hora_evento` datetime NOT NULL,
     `endereco_evento` varchar(255) NOT NULL,
-    `fk_ongUsuarios_id_ong` binary(16) NOT NULL,
+    `fk_ongusuarios_id_ong` binary(16) NOT NULL,
     PRIMARY KEY (`id_evento`),
-    KEY `fk_evento_ong` (`fk_ongUsuarios_id_ong`),
-    CONSTRAINT `fk_evento_ong` FOREIGN KEY (`fk_ongUsuarios_id_ong`) REFERENCES `ongusuarios` (`id`)
+    KEY `fk_evento_ong` (`fk_ongusuarios_id_ong`),
+    CONSTRAINT `fk_evento_ong` FOREIGN KEY (`fk_ongusuarios_id_ong`) REFERENCES `ongusuarios` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -162,10 +162,10 @@ CREATE TABLE `fichamedicaanimal` (
 CREATE TABLE `fotosadotante` (
     `id_foto` binary(16) NOT NULL,
     `arquivo` varchar(255) NOT NULL,
-    `fk_adotanteUsuarios_id_adotante` binary(16) NOT NULL,
+    `fk_adotanteusuarios_id_adotante` binary(16) NOT NULL,
     PRIMARY KEY (`id_foto`),
-    KEY `fk_foto_adotante` (`fk_adotanteUsuarios_id_adotante`),
-    CONSTRAINT `fk_foto_adotante` FOREIGN KEY (`fk_adotanteUsuarios_id_adotante`) REFERENCES `adotanteusuarios` (`id`)
+    KEY `fk_foto_adotante` (`fk_adotanteusuarios_id_adotante`),
+    CONSTRAINT `fk_foto_adotante` FOREIGN KEY (`fk_adotanteusuarios_id_adotante`) REFERENCES `adotanteusuarios` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --

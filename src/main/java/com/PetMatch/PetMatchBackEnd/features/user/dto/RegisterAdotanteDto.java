@@ -1,9 +1,12 @@
 package com.PetMatch.PetMatchBackEnd.features.user.dto;
 
+import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.FotoAnimalDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,4 +30,7 @@ public class RegisterAdotanteDto extends UsuarioDto {
     @Schema(description = "Preferências do adotante em relação ao tipo de animal desejado.",
             example = "Prefiro gatos adultos e calmos.")
     private String preferencia;
+
+    @Schema(description = "Lista de fotos associadas ao adotante.")
+    private List<FotosAdotanteDto> fotosAdotanteDtos;
 }
