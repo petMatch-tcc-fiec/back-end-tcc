@@ -7,7 +7,6 @@ import com.PetMatch.PetMatchBackEnd.features.adocao.repositories.AdocaoInteresse
 import com.PetMatch.PetMatchBackEnd.features.adocao.services.AdocaoService;
 import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
 import com.PetMatch.PetMatchBackEnd.features.animais.repositories.AnimaisRepository;
-import com.PetMatch.PetMatchBackEnd.features.firebase.services.NotificationService;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -38,7 +37,7 @@ public class AdocaoServiceImpl implements AdocaoService {
     private UsuarioRepository userRepository;
 
     @Autowired
-    private NotificationService notificationService;
+    private JavaMailSender emailSender;
 
     @Override
     public void registrarInteresse(UUID animalId, UUID usuarioId) { // Parâmetros UUID
@@ -98,43 +97,58 @@ public class AdocaoServiceImpl implements AdocaoService {
 
         if (foiAprovado) {
             // Método que você já deve ter:
-            enviarNotificacaoAprovacao(interesse);
+            enviarEmailAprovacao(interesse);
         }
 
-        // Novo bloco para enviar notificação de REJEIÇÃO
+        // Novo bloco para enviar e-mail de REJEIÇÃO
         if (foiRejeitado) {
-            enviarNotificacaoReprovacao(interesse); // 👈 NOVO MÉTODO
+            enviarEmailReprovacao(interesse); // 👈 NOVO MÉTODO
         }
     }
 
-    public void enviarNotificacaoAprovacao(AdocaoInteresse interesse) {
-        Usuario usuario = interesse.getUsuario();
-        Animais animal = interesse.getAnimal();
+    public void enviarEmailAprovacao(AdocaoInteresse interesse) {
+        try {
+            Usuario usuario = interesse.getUsuario();
+            Animais animal = interesse.getAnimal(); // Supondo que você queira o nome do animal
 
-        if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {
-            String title = "Parabéns! Sua adoção foi aprovada!";
-            String body = "Temos ótimas notícias, " + usuario.getName() + "! Seu interesse em adotar o(a) " + animal.getNome() + " foi aprovado";
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("noreply@petmatch.com"); // Ou seu e-mail configurado
+            message.setTo(usuario.getEmail()); // Pega o email do usuário associado ao interesse
+            message.setSubject("Parabéns! Sua solicitação de adoção foi aprovada!");
+            message.setText("Olá " + usuario.getName() + ",\n\n" +
+                    "Temos ótimas notícias! Seu interesse em adotar o(a) " + animal.getNome() + " foi aprovado.\n\n" +
+                    "A ONG responsável entrará em contato em breve para os próximos passos.\n\n" +
+                    "Atenciosamente,\n" +
+                    "Equipe PetMatch");
+            emailSender.send(message);
+            log.info("E-mail de aprovação enviado para: {}", usuario.getEmail());
 
-            notificationService.sendPushNotification(usuario.getFcmToken(), title, body);
-            log.info("Notificação de aprovação enviada para: {}", usuario.getEmail()); // Log ainda pode usar email como ID
-        } else {
-            log.warn("Usuário {} não possui FCM token para ser notificado.", usuario.getEmail());
+        } catch (Exception e) {
+            // Logar o erro é importante para saber se o e-mail falhou
+            log.error("Erro ao enviar e-mail de aprovação para {}: {}", interesse.getUsuario().getEmail(), e.getMessage());
+            // Você pode querer adicionar um tratamento mais robusto aqui (ex: colocar em uma fila para tentar reenviar)
         }
     }
+    public void enviarEmailReprovacao(AdocaoInteresse interesse) {
+        try {
+            Usuario usuario = interesse.getUsuario();
+            Animais animal = interesse.getAnimal(); // Supondo que você queira o nome do animal
 
-    public void enviarNotificacaoReprovacao(AdocaoInteresse interesse) {
-        Usuario usuario = interesse.getUsuario();
-        Animais animal = interesse.getAnimal();
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("noreply@petmatch.com"); // Ou seu e-mail configurado
+            message.setTo(usuario.getEmail()); // Pega o email do usuário associado ao interesse
+            message.setSubject("Que pena! Sua solicitação de adoção foi reprovada!");
+            message.setText("Olá " + usuario.getName() + ",\n\n" +
+                    "Temos más notícias! Seu interesse em adotar o(a) " + animal.getNome() + " foi reprovado.\n\n" +
+                    "Atenciosamente,\n" +
+                    "Equipe PetMatch");
+            emailSender.send(message);
+            log.info("E-mail de reprovação enviado para: {}", usuario.getEmail());
 
-        if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {
-            String title = "Sua solicitação foi reprovada";
-            String body = "Olá " + usuario.getName() + " infelizmente, seu interesse em adotar o(a) " + animal.getNome() + " foi reprovado dessa vez";
-
-            notificationService.sendPushNotification(usuario.getFcmToken(), title, body);
-            log.info("Notificação de reprovação enviada par: {}", usuario.getEmail());
-        } else {
-            log.warn("Usuário {} não possui FCM token para ser notificado.", usuario.getEmail());
+        } catch (Exception e) {
+            // Logar o erro é importante para saber se o e-mail falhou
+            log.error("Erro ao enviar e-mail de reprovação para {}: {}", interesse.getUsuario().getEmail(), e.getMessage());
+            // Você pode querer adicionar um tratamento mais robusto aqui (ex: colocar em uma fila para tentar reenviar)
         }
     }
-
 }
