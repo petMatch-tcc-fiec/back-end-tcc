@@ -9,12 +9,16 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.FirebaseMessagingException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class NotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(com.PetMatch.PetMatchBackEnd.features.firebase.services.NotificationService.class);
 
     private final UsuarioRepository usuarioRepository;
     private final FirebaseMessaging firebaseMessaging;
@@ -67,5 +71,35 @@ public class NotificationService {
         System.out.println("Notificação enviada com sucesso. ID da mensagem Firebase: " + response);
 
         return response;
+    }
+
+    /**
+     * --- MÉTODO NOVO (O QUE EU CRIEI) ---
+     * Envia uma notificação push direta para um token.
+     * Usado por outros serviços (como AdocaoService) que já têm o token e não querem lançar exceção.
+     * @param token O token FCM do dispositivo.
+     * @param title O título da notificação.
+     * @param body O corpo da mensagem.
+     */
+    public void sendPushNotification(String token, String title, String body) {
+        try {
+            Notification notification = Notification.builder()
+                    .setTitle(title)
+                    .setBody(body)
+                    .build();
+
+            Message message = Message.builder()
+                    .setToken(token) // O FCM Token do dispositivo do usuário
+                    .setNotification(notification)
+                    .build();
+
+            String response = firebaseMessaging.send(message);
+            log.info("Notificação direta enviada com sucesso: " + response);
+
+        } catch (Exception e) {
+            // Este método apenas loga o erro e não lança exceção,
+            // para não quebrar a transação principal (ex: aprovar a adoção).
+            log.error("Erro ao enviar notificação push direta para o token {}: {}", token, e.getMessage());
+        }
     }
 }
