@@ -35,9 +35,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Usuario login(LoginRequest request) {
         Optional<Usuario> usuario = usuarioService.findByEmail(request.getEmail());
+
         if (usuario.isPresent()) {
             Usuario encontrado = usuario.get();
-            if (PasswordEncryptor.matches(request.getPassword(), encontrado.getPassword()))
+
+            if (passwordEncoder.matches(request.getPassword(), encontrado.getPassword()))
                 return encontrado;
         }
         throw new BadCredentialsException("Email ou senha inválidos.");

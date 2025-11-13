@@ -39,10 +39,30 @@ public class AuthController {
                     @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos.", content = @Content)
             }
     )
+
+    /**
+     * Registro de novo usuário.
+     * AGORA RETORNA OS DADOS COMPLETOS DO USUÁRIO + TOKEN.
+     */
     @PostMapping("/register")
-    public ResponseEntity<Usuario> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<LoginResponse> register(@RequestBody RegisterRequest request) {
+        // 1. Cria o usuário
         Usuario newUser = authService.register(request);
-        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+
+        // 2. Gera o token
+        String jwtToken = jwtService.generateToken(newUser);
+
+        // --- 3. CORREÇÃO: Monta a resposta COMPLETA ---
+        LoginResponse response = LoginResponse.builder()
+                .token(jwtToken)
+                .id(newUser.getId()) // O UUID que o frontend precisa
+                .email(newUser.getEmail())
+                .nome(newUser.getName()) // (Confirme se o método é .getName() na sua entidade Usuario)
+                .tipo(newUser.getAccessLevel().toString()) // (Ex: "ADOTANTE")
+                .build();
+        // ---------------------------------------------
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @Operation(
@@ -54,12 +74,29 @@ public class AuthController {
                     @ApiResponse(responseCode = "401", description = "Credenciais inválidas.", content = @Content)
             }
     )
+
+    /**
+     * Login tradicional.
+     * AGORA RETORNA OS DADOS COMPLETOS DO USUÁRIO + TOKEN.
+     */
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        // 1. O service (corrigido) acha o usuário
         Usuario loggedInUser = authService.login(request);
-        String jwtToken = this.jwtService.generateToken(loggedInUser);
-        LoginResponse response = new LoginResponse();
-        response.setToken(jwtToken);
+
+        // 2. Gera o token
+        String jwtToken = this.jwtService.generateTokenComplete(loggedInUser);
+
+        // --- 3. CORREÇÃO: Monta a resposta COMPLETA ---
+        LoginResponse response = LoginResponse.builder()
+                .token(jwtToken)
+                .id(loggedInUser.getId()) // O UUID que o frontend precisa
+                .email(loggedInUser.getEmail())
+                .nome(loggedInUser.getName()) // (Confirme se o método é .getName())
+                .tipo(loggedInUser.getAccessLevel().toString()) // (Ex: "ONG")
+                .build();
+        // ---------------------------------------------;
+
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -75,11 +112,20 @@ public class AuthController {
     public ResponseEntity<LoginResponse> loginProva(@RequestBody LoginRequest request) {
         request.setEmail("usuario@exemplo.com");
         request.setPassword("Senha123!");
-        Usuario loggedInUser = authService.login(request);
 
+        Usuario loggedInUser = authService.login(request);
         String jwtToken = this.jwtService.generateToken(loggedInUser);
-        LoginResponse response = new LoginResponse();
-        response.setToken(jwtToken);
+
+        // --- 3. CORREÇÃO APLICADA AQUI TAMBÉM ---
+        LoginResponse response = LoginResponse.builder()
+                .token(jwtToken)
+                .id(loggedInUser.getId())
+                .email(loggedInUser.getEmail())
+                .nome(loggedInUser.getName())
+                .tipo(loggedInUser.getAccessLevel().toString())
+                .build();
+        // -----------------------------------------
+
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

@@ -35,6 +35,7 @@ public class JwtService {
 
     public String generateTokenComplete(Usuario usuario) {
         HashMap<String, Object> extraInfos = new HashMap<>();
+        extraInfos.put("id", usuario.getId());
         extraInfos.put("name", usuario.getName());
         extraInfos.put("picture", usuario.getPicture());
         extraInfos.put("accessLevel", usuario.getAccessLevel().name());
