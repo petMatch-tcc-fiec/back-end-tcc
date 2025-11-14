@@ -49,10 +49,10 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/v1/api/animais/**", "/v1/api/eventos/**",
-                                "/v1/api/adocao/animal/lista-espera/**", "/v1/api/adocao/interesse/avaliar/**").hasAuthority("ONG")
+                        .requestMatchers("/v1/api/animais/**", "/v1/api/eventos/**", "/v1/api/adocao/interesse/avaliar/**").hasAuthority("ONG")
                         .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/usuarios/admin",
                                 "/v1/api/usuarios/adotante", "/v1/api/usuarios/ong", "/v1/api/notifications/sendToUser",
+                                "/v1/api/adocao/animal/lista-espera/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "v1/api/adocao/animal/match/**").authenticated()
                         .anyRequest().authenticated()
