@@ -39,7 +39,7 @@ public class AnimaisController {
     @ApiResponse(
             responseCode = "201",
             description = "Animal criado com sucesso",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Animais.class))
+            content = @Content(mediaType = "application/json")
     )
     @PostMapping
     public ResponseEntity<AnimalResponseDto> create(
@@ -59,7 +59,7 @@ public class AnimaisController {
     @ApiResponse(
             responseCode = "200",
             description = "Lista de animais retornada com sucesso",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Animais.class))
+            content = @Content(mediaType = "application/json")
     )
     @GetMapping
     public ResponseEntity<List<Animais>> getAllAnimais() {
@@ -133,7 +133,7 @@ public class AnimaisController {
     @ApiResponse(
             responseCode = "200",
             description = "Lista de animais filtrada retornada com sucesso",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Animais.class))
+            content = @Content(mediaType = "application/json")
     )
     @GetMapping("/filters/all")
     public List<Animais> getAnimalById(

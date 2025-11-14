@@ -12,8 +12,7 @@ import java.util.UUID;
 public class EventoResponseDto {
 
     @Schema(
-            description = "Identificador único do evento.",
-            example = "b21a7b48-6d2a-4d2c-b18f-92dc55f6b8e7"
+            description = "Identificador único do evento."
     )
     private UUID id;
 
@@ -36,8 +35,7 @@ public class EventoResponseDto {
     private String endereco;
 
     @Schema(
-            description = "Identificador da ONG responsável pelo evento.",
-            example = "8a8a8a8a-8a8a-8a8a-8a8a-8a8a8a8a8a8a"
+            description = "Identificador da ONG responsável pelo evento."
     )
     private UUID idOng;
 }

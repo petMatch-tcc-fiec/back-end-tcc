@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Builder
-@Table(name = "fotosAnimais")
+@Table(name = "fotosanimais")
 @Schema(
         name = "FotosAnimais",
         description = "Representa uma foto associada a um animal disponível para adoção."

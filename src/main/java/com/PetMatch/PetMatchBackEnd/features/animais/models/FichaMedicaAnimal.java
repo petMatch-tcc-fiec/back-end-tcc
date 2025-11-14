@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @Builder
 @Entity
-@Table(name = "fichaMedicaAnimal")
+@Table(name = "fichamedicaanimal")
 @Schema(
         name = "FichaMedicaAnimal",
         description = "Contém informações médicas e histórico de saúde de um animal."
