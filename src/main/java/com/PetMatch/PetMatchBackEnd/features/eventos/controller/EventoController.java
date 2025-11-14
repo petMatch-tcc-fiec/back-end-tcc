@@ -98,8 +98,15 @@ public class EventoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarEvento(
             @Parameter(description = "ID do evento a ser deletado", example = "a3f1e6d5-7c2b-4a89-8ef1-123456789abc")
-            @PathVariable UUID id) {
-        eventoService.deletarPorId(id);
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) { // <-- 1. ADICIONE ISSO
+
+        // 2. Pegue os dados do usuário logado (igual ao seu "criarEvento")
+        UUID idUsuarioLogado = usuarioAutenticado.getId();
+        String perfilUsuario = usuarioAutenticado.getAccessLevel().name();
+
+        // 3. Passe os dados para o service
+        eventoService.deletarPorId(id, idUsuarioLogado, perfilUsuario);
         return ResponseEntity.noContent().build();
     }
 }

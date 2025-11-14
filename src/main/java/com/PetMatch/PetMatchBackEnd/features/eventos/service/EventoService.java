@@ -14,5 +14,5 @@ public interface EventoService {
     EventoResponseDto criarEvento(CriarEventoDto eventoDto, UUID idDaOngLogada, String perfilDaOng);
     List<EventoResponseDto> listarTodosEventos();
     Optional<EventoResponseDto> buscarPorId(UUID id);
-    void deletarPorId(UUID id);
+    void deletarPorId(UUID idEvento, UUID idUsuarioLogado, String perfilUsuario);
 }

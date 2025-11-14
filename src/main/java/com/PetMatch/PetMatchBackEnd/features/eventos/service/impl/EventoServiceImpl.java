@@ -11,8 +11,10 @@ import com.PetMatch.PetMatchBackEnd.features.user.repositories.OngUsuariosReposi
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.UsuarioRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -78,11 +80,33 @@ public class EventoServiceImpl implements EventoService {
     }
 
     @Override
-    public void deletarPorId(UUID id) {
-        if (!eventoRepository.existsById(id)) {
-            throw new RuntimeException("Evento não encontrado com o ID: " + id);
+    public void deletarPorId(UUID idEvento, UUID idUsuarioLogado, String perfilUsuario) {
+        // 1. Verificar se é uma ONG (opcional, mas bom)
+        if (!"ONG".equalsIgnoreCase(perfilUsuario)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado: Somente ONGs podem deletar eventos.");
         }
-        eventoRepository.deleteById(id);
+
+        // 2. Buscar a ONG logada (mesma lógica do seu método criarEvento)
+        Usuario usuario = usuarioRepository.findById(idUsuarioLogado)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário de sistema não encontrado."));
+
+        OngUsuarios ongLogada = ongUsuariosRepository.findByUsuario(usuario)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Perfil de ONG não encontrado para este usuário."));
+
+        // 3. Buscar o Evento que ele quer deletar
+        // (Se não achar, lança o 404 que falamos)
+        Evento evento = eventoRepository.findById(idEvento)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado com o ID: " + idEvento));
+
+        // 4. A VERIFICAÇÃO DE SEGURANÇA!
+        //    Verificar se o ID da ONG logada é o mesmo ID da ONG salvo no evento.
+        if (!evento.getIdOng().equals(ongLogada.getId())) {
+            // Se não for o dono, lança 403 (Proibido)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado: Você não tem permissão para deletar este evento.");
+        }
+
+        // 5. Se passou em tudo, pode deletar
+        eventoRepository.delete(evento);
     }
 
     private EventoResponseDto mapToEventoResponseDto(Evento evento) {
