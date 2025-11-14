@@ -5,9 +5,13 @@ import com.PetMatch.PetMatchBackEnd.features.eventos.dto.EventoResponseDto;
 import com.PetMatch.PetMatchBackEnd.features.eventos.model.Evento;
 import com.PetMatch.PetMatchBackEnd.features.eventos.repository.EventoRepository;
 import com.PetMatch.PetMatchBackEnd.features.eventos.service.EventoService;
+import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
+import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.OngUsuariosRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,29 +28,23 @@ public class EventoServiceImpl implements EventoService {
     private final OngUsuariosRepository ongUsuariosRepository;
 
     @Override
-    public EventoResponseDto criarEvento(CriarEventoDto eventoDto, UUID idOng, String perfilUsuario) {
-        // 1. Validação de Permissão (Regra de Negócio)
-        if (!"ONG".equalsIgnoreCase(perfilUsuario)) {
-            throw new SecurityException("Acesso negado: Somente ONGs podem criar eventos.");
-        }
+    @Transactional
+    public Evento criarEvento(CriarEventoDto eventoDto, Authentication authentication) {
+        // ✅ Busca a ONG do usuário logado
+        Usuario usuario = (Usuario) authentication.getPrincipal();
 
-        // 2. Validação de Existência (Regra de Negócio)
-        // Verifica se a ONG que está tentando criar o evento realmente existe no banco.
-        ongUsuariosRepository.findById(idOng)
-                .orElseThrow(() -> new RuntimeException("ONG não encontrada com o ID: " + idOng));
+        OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuario)
+                .orElseThrow(() -> new AccessDeniedException("Usuário não é uma ONG"));
 
-        // 3. Criação da Entidade
-        Evento novoEvento = new Evento();
-        novoEvento.setNome(eventoDto.getNome());
-        novoEvento.setDataHora(eventoDto.getDataHora());
-        novoEvento.setEndereco(eventoDto.getEndereco());
-        novoEvento.setIdOng(idOng); // Associa o evento à ONG logada
+        // ✅ Cria evento vinculado à ONG do usuário
+        Evento evento = Evento.builder()
+                .nome(eventoDto.getNome())
+                .dataHora(eventoDto.getDataHora())
+                .endereco(eventoDto.getEndereco())
+                .ong(ong) // ✅ ONG do usuário logado, não do request
+                .build();
 
-        // 4. Persistência no Banco
-        Evento eventoSalvo = eventoRepository.save(novoEvento);
-
-        // 5. Mapeamento para o DTO de Resposta
-        return mapToEventoResponseDto(eventoSalvo);
+        return eventoRepository.save(evento);
     }
 
     @Override
@@ -76,7 +74,6 @@ public class EventoServiceImpl implements EventoService {
                 .nome(evento.getNome())
                 .dataHora(evento.getDataHora())
                 .endereco(evento.getEndereco())
-                .idOng(evento.getIdOng())
                 .build();
     }
 }
