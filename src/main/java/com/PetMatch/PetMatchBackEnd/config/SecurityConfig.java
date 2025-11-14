@@ -24,6 +24,8 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    //mudei
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
@@ -47,21 +49,62 @@ public class SecurityConfig {
                     httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
                 })
                 .authenticationProvider(authenticationProvider)
+
                 .authorizeHttpRequests(auth -> auth
+
+                        // ------------------------------------------------------------
+                        // 1️⃣ ROTAS PÚBLICAS (sem necessidade de login)
+                        // ------------------------------------------------------------
+                        .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/adotante").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/admin").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/ong").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/api/auth/**").permitAll()
+                        .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/notifications/sendToUser").permitAll()
+
+                        // ------------------------------------------------------------
+                        // 2️⃣ ROTAS RESTRITAS POR CARGO / AUTORIDADE (SÓ ONG)
+                        // ------------------------------------------------------------
                         .requestMatchers("/v1/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/v1/api/animais/**", "/v1/api/eventos/**", "/v1/api/adocao/interesse/avaliar/**").hasAuthority("ONG")
-                        .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/usuarios/admin",
-                                "/v1/api/usuarios/adotante", "/v1/api/usuarios/ong", "/v1/api/notifications/sendToUser",
+
+                        // --- Regras de Adocao (SÓ ONG) ---
+                        .requestMatchers(
+                                // "/v1/api/animais/**", // <-- REMOVIDO DAQUI
                                 "/v1/api/adocao/animal/lista-espera/**",
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "v1/api/adocao/animal/match/**").authenticated()
+                                "/v1/api/adocao/interesse/avaliar/**"
+                        ).hasAuthority("ONG")
+
+                        // --- Regras de Eventos (SÓ ONG) ---
+                        .requestMatchers(HttpMethod.POST, "/v1/api/eventos").hasAuthority("ONG")
+                        .requestMatchers(HttpMethod.PUT, "/v1/api/eventos/**").hasAuthority("ONG")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/api/eventos/**").hasAuthority("ONG")
+
+                        // --- Regras de Animais (SÓ ONG) ---
+                        .requestMatchers(HttpMethod.POST, "/v1/api/animais/**").hasAuthority("ONG")
+                        .requestMatchers(HttpMethod.PUT, "/v1/api/animais/**").hasAuthority("ONG")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/api/animais/**").hasAuthority("ONG")
+
+
+                        // ------------------------------------------------------------
+                        // 3️⃣ ROTAS QUE EXIGEM APENAS AUTENTICAÇÃO (qualquer usuário logado)
+                        // ------------------------------------------------------------
+
+                        // --- Regras de Visualização (QUALQUER UM LOGADO) ---
+                        .requestMatchers(HttpMethod.GET, "/v1/api/eventos", "/v1/api/eventos/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/v1/api/animais", "/v1/api/animais/**").authenticated() // <-- ADICIONADO
+
+                        .requestMatchers(HttpMethod.PUT, "/v1/api/notifications/token").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/v1/api/adocao/animal/match/**").authenticated()
+
+                        // ------------------------------------------------------------
+                        // 4️⃣ QUALQUER OUTRA ROTA EXIGE AUTENTICAÇÃO
+                        // ------------------------------------------------------------
                         .anyRequest().authenticated()
                 )
+// ... (resto do seu método) ...
                 .sessionManagement(session -> session
-                        // Define a política de gerenciamento de sessão como STATELESS para JWT
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Adiciona o filtro JWT antes do filtro de autenticação padrão
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

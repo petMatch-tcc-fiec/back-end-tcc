@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface EventoService {
 
-    Evento criarEvento(CriarEventoDto eventoDto, Authentication authentication);
+    EventoResponseDto criarEvento(CriarEventoDto eventoDto, UUID idDaOngLogada, String perfilDaOng);
     List<EventoResponseDto> listarTodosEventos();
     Optional<EventoResponseDto> buscarPorId(UUID id);
     void deletarPorId(UUID id);

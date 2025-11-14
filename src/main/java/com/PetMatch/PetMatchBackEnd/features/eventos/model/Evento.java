@@ -30,8 +30,7 @@ public class Evento {
     @Column(name = "endereco_evento", nullable = false, length = 255)
     private String endereco;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_ongusuarios_id_ong", nullable = false)
-    @JsonIgnoreProperties({"senhaOng", "emailOng", "enderecoOng", "telefoneOng", "celularOng", "cnpjOng", "usuario", "animais", "eventos"})
-    private OngUsuarios ong;
+
+    @Column(name = "fk_ongusuarios_id_ong", nullable = false)
+    private UUID idOng;
 }

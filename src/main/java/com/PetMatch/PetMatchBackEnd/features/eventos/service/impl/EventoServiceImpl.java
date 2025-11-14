@@ -8,9 +8,9 @@ import com.PetMatch.PetMatchBackEnd.features.eventos.service.EventoService;
 import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.OngUsuariosRepository;
-import jakarta.transaction.Transactional;
+import com.PetMatch.PetMatchBackEnd.features.user.repositories.UsuarioRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -27,25 +27,42 @@ public class EventoServiceImpl implements EventoService {
     private EventoRepository eventoRepository;
     private final OngUsuariosRepository ongUsuariosRepository;
 
+    private final UsuarioRepository usuarioRepository;
+
+
     @Override
-    @Transactional
-    public Evento criarEvento(CriarEventoDto eventoDto, Authentication authentication) {
-        // ✅ Busca a ONG do usuário logado
-        Usuario usuario = (Usuario) authentication.getPrincipal();
+    public EventoResponseDto criarEvento(CriarEventoDto eventoDto, UUID idUsuarioLogado, String perfilUsuario) {
+        // 1. Validação de Permissão (Regra de Negócio)
+        if (!"ONG".equalsIgnoreCase(perfilUsuario)) {
+            throw new SecurityException("Acesso negado: Somente ONGs podem criar eventos.");
+        }
 
+        // 2. BUSCAR O OBJETO 'Usuario' PRIMEIRO
+        // (Assumindo que o ID 'idUsuarioLogado' é o PK da entidade Usuario/UsuarioSistema)
+        Usuario usuario = usuarioRepository.findById(idUsuarioLogado)
+                .orElseThrow(() -> new RuntimeException("Usuário de sistema não encontrado com o ID: " + idUsuarioLogado));
+
+        // 3. AGORA, USE SEU MÉTODO para encontrar o perfil da ONG
         OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuario)
-                .orElseThrow(() -> new AccessDeniedException("Usuário não é uma ONG"));
+                .orElseThrow(() -> new RuntimeException("Não foi possível encontrar uma ONG associada ao usuário: " + usuario.getUsername())); // ou usuario.getEmail()
 
-        // ✅ Cria evento vinculado à ONG do usuário
-        Evento evento = Evento.builder()
-                .nome(eventoDto.getNome())
-                .dataHora(eventoDto.getDataHora())
-                .endereco(eventoDto.getEndereco())
-                .ong(ong) // ✅ ONG do usuário logado, não do request
-                .build();
 
-        return eventoRepository.save(evento);
+        // 4. Criação da Entidade
+        Evento novoEvento = new Evento();
+        novoEvento.setNome(eventoDto.getNome());
+        novoEvento.setDataHora(eventoDto.getDataHora());
+        novoEvento.setEndereco(eventoDto.getEndereco());
+
+        // 5. Associa o evento à ONG logada usando o ID CORRETO (o PK da ONG)
+        novoEvento.setIdOng(ong.getId()); // <-- AQUI ESTÁ A CORREÇÃO
+
+        // 6. Persistência no Banco
+        Evento eventoSalvo = eventoRepository.save(novoEvento);
+
+        // 7. Mapeamento para o DTO de Resposta
+        return mapToEventoResponseDto(eventoSalvo);
     }
+
 
     @Override
     public List<EventoResponseDto> listarTodosEventos() {
@@ -74,6 +91,7 @@ public class EventoServiceImpl implements EventoService {
                 .nome(evento.getNome())
                 .dataHora(evento.getDataHora())
                 .endereco(evento.getEndereco())
+                .id(evento.getIdOng())
                 .build();
     }
 }

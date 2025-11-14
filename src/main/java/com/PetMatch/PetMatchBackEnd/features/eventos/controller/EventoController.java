@@ -2,9 +2,9 @@ package com.PetMatch.PetMatchBackEnd.features.eventos.controller;
 
 import com.PetMatch.PetMatchBackEnd.features.eventos.dto.CriarEventoDto;
 import com.PetMatch.PetMatchBackEnd.features.eventos.dto.EventoResponseDto;
-import com.PetMatch.PetMatchBackEnd.features.eventos.model.Evento;
 import com.PetMatch.PetMatchBackEnd.features.eventos.service.EventoService;
 
+import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,12 +12,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,14 +49,22 @@ public class EventoController {
             description = "Cria um novo evento vinculado à ONG logada (simulado neste exemplo).",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Evento criado com sucesso",
-                            content = @Content(mediaType = "application/json")),
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EventoResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Dados inválidos para criação do evento")
             }
     )
     @PostMapping
-    public ResponseEntity<Evento> criarNovoEvento(
-            @Valid @RequestBody CriarEventoDto eventoDto, Authentication authentication) {
-        Evento novoEvento = eventoService.criarEvento(eventoDto, authentication);
+    public ResponseEntity<EventoResponseDto> criarNovoEvento(
+            @RequestBody CriarEventoDto eventoDto,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) { // <-- 1. RECEBA O USUÁRIO REAL DO TOKEN
+
+        // 2. PEGUE OS DADOS REAIS DO USUÁRIO LOGADO
+        UUID idDaOngLogada = usuarioAutenticado.getId();
+        String perfilDaOng = usuarioAutenticado.getAccessLevel().name(); // Ou .toString(), dependendo do seu Enum
+
+        // 3. PASSE OS DADOS REAIS PARA O SERVIÇO
+        EventoResponseDto novoEvento = eventoService.criarEvento(eventoDto, idDaOngLogada, perfilDaOng);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoEvento);
     }
 
