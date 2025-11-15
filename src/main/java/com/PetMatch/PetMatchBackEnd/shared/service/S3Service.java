@@ -49,7 +49,7 @@ public class S3Service {
         s3Client.putObject(putObjectRequest,
                 RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-        return keyName;
+        return s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(keyName)).toExternalForm();
     }
 
     // Você pode adicionar métodos para download, exclusão, etc.

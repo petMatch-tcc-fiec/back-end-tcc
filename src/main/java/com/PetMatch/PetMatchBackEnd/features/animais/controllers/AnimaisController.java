@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -41,16 +42,27 @@ public class AnimaisController {
             description = "Animal criado com sucesso",
             content = @Content(mediaType = "application/json")
     )
-    @PostMapping
+    // --- INÍCIO DAS MUDANÇAS ---
+    @PostMapping(consumes = { "multipart/form-data" }) // <-- MUDANÇA 1
     public ResponseEntity<AnimalResponseDto> create(
-            @Valid @RequestBody
+
+            // MUDANÇA 2: @RequestPart para o DTO (JSON)
+            @Valid @RequestPart("dto")
             @Parameter(description = "Dados do novo animal a ser cadastrado")
-            AnimalRegisterDto animais,
+            AnimalRegisterDto dto,
+
+            // MUDANÇA 3: @RequestPart para o ARQUIVO
+            @RequestPart(value = "file", required = false)
+            @Parameter(description = "Arquivo de imagem do animal")
+            MultipartFile file,
+
             Authentication authentication
     ) {
-        AnimalResponseDto novoAnimal = animaisService.create(animais, authentication); // ✅ Retorna DTO
+        // MUDANÇA 4: Passa o 'dto' e o 'file' para o service
+        AnimalResponseDto novoAnimal = animaisService.create(dto, file, authentication);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoAnimal);
     }
+    // --- FIM DAS MUDANÇAS ---
 
     @Operation(
             summary = "Listar todos os animais",
@@ -59,11 +71,12 @@ public class AnimaisController {
     @ApiResponse(
             responseCode = "200",
             description = "Lista de animais retornada com sucesso",
-            content = @Content(mediaType = "application/json")
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = AnimalResponseDto.class))
     )
     @GetMapping
-    public ResponseEntity<List<Animais>> getAllAnimais() {
-        List<Animais> animais = animaisService.findAll();
+    public ResponseEntity<List<AnimalResponseDto>> getAllAnimais() {
+        List<AnimalResponseDto> animais = animaisService.findAllAnimaisDto();
         return ResponseEntity.ok(animais);
     }
 
