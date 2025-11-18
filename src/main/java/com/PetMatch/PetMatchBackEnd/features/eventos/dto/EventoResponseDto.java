@@ -16,5 +16,9 @@ public class EventoResponseDto {
     private LocalDateTime dataHora;
     private String endereco;
     private OngSimplificadaDTO ong;
+    // --- NOVO CAMPO ADICIONADO ---
+    @Schema(description = "Descrição detalhada do evento.")
+    private String descricao;
+    // --- FIM DO NOVO CAMPO ---
 }
 

@@ -14,5 +14,5 @@ public interface AdocaoInteresseRepository extends JpaRepository<AdocaoInteresse
     List<AdocaoInteresse> findByAnimalIdAndStatusOrderByDataDeCriacaoAsc(UUID animalId, AdocaoStatus status);
 
 
-    boolean existsByIdAndUsuarioIdAndStatus(UUID animalId, UUID usuarioId, AdocaoStatus status);
+    boolean existsByAnimalIdAndUsuarioIdAndStatus(UUID animalId, UUID usuarioId, AdocaoStatus status);
 }

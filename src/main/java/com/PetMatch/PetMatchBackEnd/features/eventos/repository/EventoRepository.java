@@ -6,4 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface EventoRepository extends JpaRepository<Evento, UUID> {
+    // NOVO MÉTODO: Para buscar eventos de uma ONG específica
+    List<Evento> findByIdOng(UUID ongId);
 }

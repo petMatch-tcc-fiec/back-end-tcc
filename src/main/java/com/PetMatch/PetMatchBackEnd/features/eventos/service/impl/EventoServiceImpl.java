@@ -1,5 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.features.eventos.service.impl;
 
+import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.OngSimplificadaDTO;
 import com.PetMatch.PetMatchBackEnd.features.eventos.dto.CriarEventoDto;
 import com.PetMatch.PetMatchBackEnd.features.eventos.dto.EventoResponseDto;
 import com.PetMatch.PetMatchBackEnd.features.eventos.model.Evento;
@@ -28,7 +29,6 @@ public class EventoServiceImpl implements EventoService {
 
     private EventoRepository eventoRepository;
     private final OngUsuariosRepository ongUsuariosRepository;
-
     private final UsuarioRepository usuarioRepository;
 
 
@@ -40,7 +40,6 @@ public class EventoServiceImpl implements EventoService {
         }
 
         // 2. BUSCAR O OBJETO 'Usuario' PRIMEIRO
-        // (Assumindo que o ID 'idUsuarioLogado' é o PK da entidade Usuario/UsuarioSistema)
         Usuario usuario = usuarioRepository.findById(idUsuarioLogado)
                 .orElseThrow(() -> new RuntimeException("Usuário de sistema não encontrado com o ID: " + idUsuarioLogado));
 
@@ -54,6 +53,7 @@ public class EventoServiceImpl implements EventoService {
         novoEvento.setNome(eventoDto.getNome());
         novoEvento.setDataHora(eventoDto.getDataHora());
         novoEvento.setEndereco(eventoDto.getEndereco());
+        novoEvento.setDescricao(eventoDto.getDescricao()); // <-- MUDANÇA AQUI
 
         // 5. Associa o evento à ONG logada usando o ID CORRETO (o PK da ONG)
         novoEvento.setIdOng(ong.getId()); // <-- AQUI ESTÁ A CORREÇÃO
@@ -66,17 +66,64 @@ public class EventoServiceImpl implements EventoService {
     }
 
 
+    // --- LÓGICA DE PERMISSÃO APLICADA ---
     @Override
-    public List<EventoResponseDto> listarTodosEventos() {
-        return eventoRepository.findAll()
-                .stream()
+    public List<EventoResponseDto> listarTodosEventos(Usuario usuarioAutenticado) {
+        String perfil = usuarioAutenticado.getAccessLevel().name();
+        List<Evento> eventos;
+
+        // Se for Adotante ou Admin, vê tudo
+        if ("ADOTANTE".equalsIgnoreCase(perfil) || "ADMIN".equalsIgnoreCase(perfil)) {
+            eventos = eventoRepository.findAll();
+        }
+        // Se for ONG, vê apenas os seus
+        else if ("ONG".equalsIgnoreCase(perfil)) {
+            OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuarioAutenticado)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Perfil de ONG não encontrado."));
+
+            // Usa o novo método do repositório
+            eventos = eventoRepository.findByIdOng(ong.getId());
+        }
+        // Outros perfis (se houver) não veem nada
+        else {
+            eventos = List.of();
+        }
+
+        return eventos.stream()
                 .map(this::mapToEventoResponseDto)
                 .collect(Collectors.toList());
     }
 
+    // --- LÓGICA DE PERMISSÃO APLICADA ---
     @Override
-    public Optional<EventoResponseDto> buscarPorId(UUID id) {
-        return eventoRepository.findById(id).map(this::mapToEventoResponseDto);
+    public Optional<EventoResponseDto> buscarPorId(UUID id, Usuario usuarioAutenticado) {
+        // 1. Busca o evento
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado.")); // Lança 404 se não existir
+
+        String perfil = usuarioAutenticado.getAccessLevel().name();
+
+        // 2. Adotantes e Admins podem ver
+        if ("ADOTANTE".equalsIgnoreCase(perfil) || "ADMIN".equalsIgnoreCase(perfil)) {
+            return Optional.of(mapToEventoResponseDto(evento));
+        }
+
+        // 3. ONGs precisam ser a "dona"
+        if ("ONG".equalsIgnoreCase(perfil)) {
+            OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuarioAutenticado)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Perfil de ONG não encontrado."));
+
+            // 4. Verifica se o evento pertence à ONG logada
+            if (evento.getIdOng().equals(ong.getId())) {
+                return Optional.of(mapToEventoResponseDto(evento)); // Pertence, pode ver
+            } else {
+                // Não é dela, lança 403 - Proibido
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para visualizar este evento.");
+            }
+        }
+
+        // Perfil desconhecido
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Perfil de usuário inválido para esta ação.");
     }
 
     @Override
@@ -109,13 +156,26 @@ public class EventoServiceImpl implements EventoService {
         eventoRepository.delete(evento);
     }
 
+    // --- CORREÇÃO DO ERRO 404 E ADIÇÃO DO NOVO CAMPO ---
     private EventoResponseDto mapToEventoResponseDto(Evento evento) {
+        // 1. Busca os dados da ONG associada
+        OngUsuarios ong = ongUsuariosRepository.findById(evento.getIdOng())
+                .orElseThrow(() -> new RuntimeException("BUG: ONG associada ao evento não encontrada. ID: " + evento.getIdOng()));
+
+        // 2. Cria o DTO simplificado (CORRIGIDO)
+        OngSimplificadaDTO ongDto = OngSimplificadaDTO.builder()
+                .nomeFantasiaOng(ong.getNomeFantasiaOng()) // <--- CORREÇÃO AQUI
+                .build();
+        // O DTO OngSimplificadaDTO não pede email, então não o colocamos.
+
+        // 3. Mapeamento final
         return EventoResponseDto.builder()
                 .id(evento.getId())
                 .nome(evento.getNome())
                 .dataHora(evento.getDataHora())
                 .endereco(evento.getEndereco())
-                .id(evento.getIdOng())
+                .descricao(evento.getDescricao()) // <-- MUDANÇA AQUI
+                .ong(ongDto) // Mapeando o objeto OngSimplificadaDTO
                 .build();
     }
 }

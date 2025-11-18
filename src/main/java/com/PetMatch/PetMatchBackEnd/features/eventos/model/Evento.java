@@ -30,6 +30,10 @@ public class Evento {
     @Column(name = "endereco_evento", nullable = false, length = 255)
     private String endereco;
 
+    // --- NOVO CAMPO ADICIONADO ---
+    @Column(name = "descricao_evento", nullable = true, length = 2000) // Coloquei um tamanho maior
+    private String descricao;
+    // --- FIM DO NOVO CAMPO ---
 
     @Column(name = "fk_ongusuarios_id_ong", nullable = false)
     private UUID idOng;

@@ -43,7 +43,7 @@ public class InteresseResponseDTO {
     public InteresseResponseDTO(AdocaoInteresse interesse) {
         this.interesseId = interesse.getId();
         this.usuarioId = interesse.getUsuario().getId();
-        this.nomeUsuario = interesse.getUsuario().getName();
+        this.nomeUsuario = interesse.getUsuario().getNomeAdotante();
         this.dataDeInteresse = interesse.getDataDeCriacao();
     }
 }

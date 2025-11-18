@@ -8,7 +8,9 @@ import com.PetMatch.PetMatchBackEnd.features.adocao.services.AdocaoService;
 import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
 import com.PetMatch.PetMatchBackEnd.features.animais.repositories.AnimaisRepository;
 import com.PetMatch.PetMatchBackEnd.features.firebase.services.NotificationService;
+import com.PetMatch.PetMatchBackEnd.features.user.models.AdotanteUsuarios;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
+import com.PetMatch.PetMatchBackEnd.features.user.repositories.AdotanteUsuariosRepository;
 import com.PetMatch.PetMatchBackEnd.features.user.repositories.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -35,6 +37,9 @@ public class AdocaoServiceImpl implements AdocaoService {
     private AnimaisRepository animaisRepository;
 
     @Autowired
+    private AdotanteUsuariosRepository adotanteUsuariosRepository;
+
+    @Autowired
     private UsuarioRepository userRepository;
 
     @Autowired
@@ -42,20 +47,24 @@ public class AdocaoServiceImpl implements AdocaoService {
 
     @Override
     public void registrarInteresse(UUID animalId, UUID usuarioId) { // Parâmetros UUID
-        boolean jaInteressado = adocaoInteresseRepository.existsByIdAndUsuarioIdAndStatus(animalId, usuarioId, AdocaoStatus.PENDENTE);
+
+        Animais animal = animaisRepository.findById(animalId)
+                .orElseThrow(() -> new EntityNotFoundException("Animal não encontrado com o ID: " + animalId));
+
+        // 1. Encontre o PERFIL (AdotanteUsuarios) usando o ID do LOGIN (usuarioId)
+        AdotanteUsuarios adotante = adotanteUsuariosRepository.findByUsuarioId(usuarioId) // <--- CRIE ESTE MÉTODO
+                .orElseThrow(() -> new EntityNotFoundException("Perfil de adotante não encontrado para o usuário: " + usuarioId));
+
+        // 2. Verifique se este PERFIL já tem interesse
+        boolean jaInteressado = adocaoInteresseRepository.existsByAnimalIdAndUsuarioIdAndStatus(animalId, adotante.getId(), AdocaoStatus.PENDENTE);
         if (jaInteressado) {
             throw new IllegalStateException("Usuário já está na fila de espera para este animal.");
         }
 
-        Animais animal = animaisRepository.findById(animalId) // findById com UUID
-                .orElseThrow(() -> new EntityNotFoundException("Animal não encontrado com o ID: " + animalId));
-
-        Usuario usuario = userRepository.findById(usuarioId) // findById com UUID
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com o ID: " + usuarioId));
-
+        // 3. Salve o interesse com o PERFIL correto
         AdocaoInteresse novoInteresse = new AdocaoInteresse();
         novoInteresse.setAnimal(animal);
-        novoInteresse.setUsuario(usuario);
+        novoInteresse.setUsuario(adotante); // <--- Anexe o objeto AdotanteUsuarios (Perfil)
 
         adocaoInteresseRepository.save(novoInteresse);
     }
@@ -108,7 +117,8 @@ public class AdocaoServiceImpl implements AdocaoService {
     }
 
     public void enviarNotificacaoAprovacao(AdocaoInteresse interesse) {
-        Usuario usuario = interesse.getUsuario();
+        AdotanteUsuarios adotante = interesse.getUsuario();
+        Usuario usuario = adotante.getUsuario();
         Animais animal = interesse.getAnimal();
 
         if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {
@@ -123,7 +133,8 @@ public class AdocaoServiceImpl implements AdocaoService {
     }
 
     public void enviarNotificacaoReprovacao(AdocaoInteresse interesse) {
-        Usuario usuario = interesse.getUsuario();
+        AdotanteUsuarios adotante = interesse.getUsuario();
+        Usuario usuario = adotante.getUsuario();
         Animais animal = interesse.getAnimal();
 
         if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {

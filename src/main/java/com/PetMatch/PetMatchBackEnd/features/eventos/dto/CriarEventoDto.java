@@ -25,4 +25,12 @@ public class CriarEventoDto {
             example = "Praça Central, Indaiatuba - SP"
     )
     private String endereco;
+
+    // --- NOVO CAMPO ADICIONADO ---
+    @Schema(
+            description = "Descrição detalhada do evento.",
+            example = "Traga sua família e venha conhecer nossos pets para adoção! Teremos música ao vivo e food trucks."
+    )
+    private String descricao;
+    // --- FIM DO NOVO CAMPO ---
 }

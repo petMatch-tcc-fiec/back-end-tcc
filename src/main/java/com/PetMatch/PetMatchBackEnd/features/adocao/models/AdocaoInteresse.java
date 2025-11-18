@@ -2,6 +2,7 @@ package com.PetMatch.PetMatchBackEnd.features.adocao.models;
 
 import com.PetMatch.PetMatchBackEnd.features.adocao.enums.AdocaoStatus;
 import com.PetMatch.PetMatchBackEnd.features.animais.models.Animais;
+import com.PetMatch.PetMatchBackEnd.features.user.models.AdotanteUsuarios;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -31,7 +32,7 @@ public class AdocaoInteresse {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_animal", nullable = false)
+    @JoinColumn(name = "fk_animais_id_animal", nullable = false)
     @Schema(
             description = "Animal para o qual o interesse foi registrado.",
             implementation = Animais.class
@@ -39,12 +40,12 @@ public class AdocaoInteresse {
     private Animais animal;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "fk_adotanteusuarios_id_adotante", nullable = false)
     @Schema(
             description = "Usuário que demonstrou interesse na adoção.",
             implementation = Usuario.class
     )
-    private Usuario usuario;
+    private AdotanteUsuarios usuario;
 
     @Column(name = "data_de_criacao", nullable = false)
     @Schema(
@@ -54,7 +55,7 @@ public class AdocaoInteresse {
     private LocalDateTime dataDeCriacao;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "adocao_status", nullable = false)
     @Schema(
             description = "Status atual do processo de adoção.",
             example = "PENDENTE"
