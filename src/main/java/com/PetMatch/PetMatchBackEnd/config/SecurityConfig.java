@@ -33,7 +33,14 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
         this.authenticationProvider = authenticationProvider;
     }
-
+    private static final String[] SWAGGER_WHITELIST = {
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/api-docs/**",
+            "/swagger-resources/**",
+            "/swagger-resources"
+            // Adicione aqui outras URLs que precisam ser públicas (como /auth/login, /auth/register)
+    };
     /**
      * Define o SecurityFilterChain que configura as regras de segurança HTTP.
      *
@@ -55,6 +62,7 @@ public class SecurityConfig {
                         // ------------------------------------------------------------
                         // 1️⃣ ROTAS PÚBLICAS (sem necessidade de login)
                         // ------------------------------------------------------------
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/adotante").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/admin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/ong").permitAll()
