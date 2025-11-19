@@ -76,6 +76,76 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         }).orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + id));
     }
 
+    // --- NOVOS MÉTODOS DE UPDATE PARA ADOTANTE E ONG ---
+
+    @Override
+    @Transactional
+    public AdotanteUsuarios updateAdotante(UUID userId, RegisterAdotanteDto updateAdotanteDto) {
+        // 1. Encontra o Usuário principal
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
+
+        // 2. Encontra a entidade Adotante
+        AdotanteUsuarios adotante = adotanteUsuariosRepository.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("Adotante não encontrado para o Usuário ID: " + userId));
+
+        // 3. Atualiza os dados do Adotante
+        adotante.setNomeAdotante(updateAdotanteDto.getName());
+        // Não é ideal atualizar o email aqui. Se for necessário, deve-se verificar a unicidade.
+        // adotante.setEmailAdotante(updateAdotanteDto.getEmail());
+
+        // Campos que podem ser editados:
+        adotante.setCpfAdotante(updateAdotanteDto.getCpf());
+        adotante.setEnderecoAdotante(updateAdotanteDto.getEndereco());
+        adotante.setCelularAdotante(updateAdotanteDto.getCelular());
+        adotante.setDescricaoOutrosAnimais(updateAdotanteDto.getDescricaoOutrosAnimais());
+        adotante.setPreferencia(updateAdotanteDto.getPreferencia());
+
+        // 4. Atualiza os dados do Usuário principal (se necessário)
+        // Usamos o método 'update' existente para mudar senha, nível de acesso, etc.
+        // Se a senha for enviada, ela será criptografada e atualizada.
+        Usuario updatedUsuario = new Usuario();
+        updatedUsuario.setName(updateAdotanteDto.getName()); // Atualiza o nome no usuário principal
+        updatedUsuario.setPassword(updateAdotanteDto.getPassword()); // Atualiza senha se fornecida
+        this.update(userId, updatedUsuario);
+
+        // 5. Salva e retorna
+        return adotanteUsuariosRepository.save(adotante);
+    }
+
+    @Override
+    @Transactional
+    public OngUsuarios updateOng(UUID userId, RegisterOngDto updateOngDto) {
+        // 1. Encontra o Usuário principal
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
+
+        // 2. Encontra a entidade ONG
+        OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("ONG não encontrada para o Usuário ID: " + userId));
+
+        // 3. Atualiza os dados da ONG
+        ong.setNomeFantasiaOng(updateOngDto.getName());
+        // Não é ideal atualizar o email aqui. Se for necessário, deve-se verificar a unicidade.
+        // ong.setEmailOng(updateOngDto.getEmail());
+
+        // Campos que podem ser editados:
+        ong.setEnderecoOng(updateOngDto.getEndereco());
+        ong.setTelefoneOng(updateOngDto.getTelefone());
+        ong.setCelularOng(updateOngDto.getCelular());
+        ong.setCnpjOng(updateOngDto.getCnpj()); // Note: CNPJ geralmente não deve ser editável
+
+        // 4. Atualiza os dados do Usuário principal (se necessário)
+        // Usamos o método 'update' existente para mudar senha, nível de acesso, etc.
+        Usuario updatedUsuario = new Usuario();
+        updatedUsuario.setName(updateOngDto.getName()); // Atualiza o nome no usuário principal
+        updatedUsuario.setPassword(updateOngDto.getPassword()); // Atualiza senha se fornecida
+        this.update(userId, updatedUsuario);
+
+        // 5. Salva e retorna
+        return ongUsuariosRepository.save(ong);
+    }
+
     @Override
     public CreatedUsuarioResponseDto saveAdmin(RegisterAdminDto registerAdminDto) {
         String email = registerAdminDto.getEmail();

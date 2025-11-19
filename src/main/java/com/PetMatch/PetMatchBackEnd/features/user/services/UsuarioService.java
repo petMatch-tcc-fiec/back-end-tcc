@@ -2,6 +2,8 @@ package com.PetMatch.PetMatchBackEnd.features.user.services;
 
 import com.PetMatch.PetMatchBackEnd.features.firebase.models.dto.FcmTokenRequest;
 import com.PetMatch.PetMatchBackEnd.features.user.dto.*;
+import com.PetMatch.PetMatchBackEnd.features.user.models.AdotanteUsuarios;
+import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
 import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 
 import java.io.InputStream;
@@ -16,6 +18,8 @@ public interface UsuarioService{
     Optional<Usuario> findByEmail(String email);
     List<Usuario> findAll();
     Usuario update(UUID id, Usuario updatedUsuario);
+    AdotanteUsuarios updateAdotante(UUID userId, RegisterAdotanteDto updateAdotanteDto);
+    OngUsuarios updateOng(UUID userId, RegisterOngDto updateOngDto);
     CreatedUsuarioResponseDto saveAdmin(RegisterAdminDto registerAdminDto);
     CreatedUsuarioResponseDto saveAdotante(RegisterAdotanteDto registerAdotanteDto);
     CreatedUsuarioResponseDto saveOng(RegisterOngDto registerOngDto);
