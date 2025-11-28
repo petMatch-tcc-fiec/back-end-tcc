@@ -16,7 +16,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -169,5 +171,19 @@ public class UsuarioController {
         usuario.setPicture(imageName);
         usuario.setState(RegisterState.IMAGE_CREATED);
         usuarioService.save(usuario);
+    }
+
+    //@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @Operation (
+            summary = "Importar usuários via CSV",
+            description = "Recebe um arquivo CSV e processa a criação de usuários em lote.",
+            responses = {
+        @ApiResponse(responseCode = "200", description = "Arquivo processado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Arquivo inválido ou erro de leitura")
+    }
+    )
+    @PostMapping(value = "/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void createUsers(@RequestParam("inputFile") MultipartFile file) throws IOException {
+        usuarioService.createUsers(file.getInputStream());
     }
 }

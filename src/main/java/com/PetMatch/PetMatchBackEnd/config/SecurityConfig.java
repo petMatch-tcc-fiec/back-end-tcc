@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/adotante").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/admin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/ong").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/api/usuarios/csv").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/api/auth/**").permitAll()
                         .requestMatchers("/images/**", "/v1/api/auth/**", "/v1/api/notifications/sendToUser").permitAll()
 

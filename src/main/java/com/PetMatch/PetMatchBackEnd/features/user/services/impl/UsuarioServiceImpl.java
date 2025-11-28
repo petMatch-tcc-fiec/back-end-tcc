@@ -177,6 +177,13 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     @Override
     public CreatedUsuarioResponseDto saveAdotante(RegisterAdotanteDto registerAdotanteDto) {
         String email = registerAdotanteDto.getEmail();
+
+        // 2. ADICIONE ESTA VALIDAÇÃO (Impede o cadastro se CNPJ já existe)
+        // Nota: Certifique-se de ter adicionado 'boolean existsByCpfAdotante(String cnpj);' no seu Repository
+        if(adotanteUsuariosRepository.existsByCpfAdotante(registerAdotanteDto.getCpf())) {
+            throw new IllegalArgumentException("O CPF '" + registerAdotanteDto.getCpf() + "' já está cadastrado no sistema.");
+        }
+
         if(findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("O e-mail '" + email + "' já está cadastrado no sistema.");
         }
@@ -315,11 +322,15 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                 usuario.setPassword(PasswordEncryptor.encrypt(csvUser.getPassword()));
                 UserLevel level = UserLevel.valueOf(csvUser.getAccessLevel());
                 usuario.setAccessLevel(level);
+                usuario.setState(RegisterState.USER_CREATED);
                 save(usuario);
                 switch (level) {
                     case UserLevel.ADOTANTE:
                         AdotanteUsuarios adotante = new AdotanteUsuarios();
                         adotante.setUsuario(usuario);
+                        adotante.setEmailAdotante(usuario.getEmail());    // <--- OBRIGATÓRIO
+                        adotante.setNomeAdotante(usuario.getName());      // <--- OBRIGATÓRIO
+                        adotante.setSenhaAdotante(usuario.getPassword()); // <--- OBRIGATÓRIO
                         adotante.setCpfAdotante(csvUser.getCpfAdotante());
                         adotante.setEnderecoAdotante(csvUser.getEnderecoAdotante());
                         adotante.setCelularAdotante(csvUser.getCelularAdotante());
@@ -330,12 +341,18 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                     case UserLevel.ADMIN:
                         AdminUsuarios admin = new AdminUsuarios();
                         admin.setUsuario(usuario);
+                        admin.setEmailAdmin(usuario.getEmail());     // <-- AQUI (Resolve o erro "email_admin cannot be null")
+                        admin.setNomeAdmin(usuario.getName());       // <-- Provavelmente necessário também
+                        admin.setSenhaAdmin(usuario.getPassword());  // <-- Provavelmente necessário também
                         admin.setCpfOuCnpjAdmin(csvUser.getCnpjOuCnpjAdmin());
                         adminUsuariosRepository.save(admin);
                         break;
                     case UserLevel.ONG:
                         OngUsuarios ong = new OngUsuarios();
                         ong.setUsuario(usuario);
+                        ong.setEmailOng(usuario.getEmail());    // <--- OBRIGATÓRIO
+                        ong.setNomeFantasiaOng(usuario.getName());      // <--- OBRIGATÓRIO
+                        ong.setSenhaOng(usuario.getPassword()); // <--- OBRIGATÓRIO
                         ong.setEnderecoOng(csvUser.getEnderecoOng());
                         ong.setTelefoneOng(csvUser.getTelefoneOng());
                         ong.setCelularOng(csvUser.getCelularOng());
