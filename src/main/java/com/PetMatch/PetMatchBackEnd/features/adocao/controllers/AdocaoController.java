@@ -27,6 +27,31 @@ public class AdocaoController {
     @Autowired
     private AdocaoService adocaoService;
 
+    // ----------------------------------------------------------------
+    // ✨ NOVO ENDPOINT: Lista os interesses do PRÓPRIO USUÁRIO LOGADO
+    // Rota final: GET /v1/api/adocao/adotante
+    // ----------------------------------------------------------------
+    @Operation(
+            summary = "Listar meus interesses de adoção",
+            description = "Retorna a lista de animais que o usuário logado demonstrou interesse."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Lista de interesses do usuário retornada com sucesso",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = InteresseResponseDTO.class))
+    )
+    @GetMapping("/adotante")
+    public ResponseEntity<List<InteresseResponseDTO>> getMeusInteresses(
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+        // Chama o método que criamos no passo anterior no Service
+        List<InteresseResponseDTO> lista = adocaoService.listarMeusInteresses(usuarioLogado);
+        return ResponseEntity.ok(lista);
+    }
+
+    // ----------------------------------------------------------------
+    // REGISTRAR INTERESSE (Já existia)
+    // ----------------------------------------------------------------
     @Operation(
             summary = "Registrar interesse em um animal",
             description = "Permite que um usuário registrado demonstre interesse em adotar um animal específico."
@@ -42,6 +67,9 @@ public class AdocaoController {
         return ResponseEntity.ok().build();
     }
 
+    // ----------------------------------------------------------------
+    // LISTAR FILA DE ESPERA DO ANIMAL (Visão da ONG - Já existia)
+    // ----------------------------------------------------------------
     @Operation(
             summary = "Listar interessados por animal",
             description = "Retorna a lista de usuários interessados em adotar um determinado animal."
@@ -61,6 +89,9 @@ public class AdocaoController {
         return ResponseEntity.ok(lista);
     }
 
+    // ----------------------------------------------------------------
+    // AVALIAR INTERESSE (Aprovar/Reprovar - Já existia)
+    // ----------------------------------------------------------------
     @Operation(
             summary = "Avaliar interesse de adoção",
             description = "Permite que o administrador avalie um interesse de adoção e defina o status (por exemplo, APROVADO, REJEITADO)."

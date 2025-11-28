@@ -16,9 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // ✨ Importante!
 
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +27,6 @@ import java.util.stream.Collectors;
 public class AdocaoServiceImpl implements AdocaoService {
 
     private static final Logger log = LoggerFactory.getLogger(AdocaoServiceImpl.class);
-
 
     @Autowired
     private AdocaoInteresseRepository adocaoInteresseRepository;
@@ -45,45 +43,71 @@ public class AdocaoServiceImpl implements AdocaoService {
     @Autowired
     private NotificationService notificationService;
 
+    // ... (mantenha os imports e anotações existentes)
+
     @Override
-    public void registrarInteresse(UUID animalId, UUID usuarioId) { // Parâmetros UUID
+    @Transactional(readOnly = true)
+    public List<InteresseResponseDTO> listarMeusInteresses(Usuario usuarioLogado) {
+        // 1. Descobrir o ID de Adotante deste Usuário
+        AdotanteUsuarios adotante = adotanteUsuariosRepository.findByUsuarioId(usuarioLogado.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Perfil de adotante não encontrado. Complete seu cadastro."));
+
+        // 2. Buscar lista na tabela de interesses usando o ID do Adotante
+        List<AdocaoInteresse> meusInteresses = adocaoInteresseRepository.findByUsuarioId(adotante.getId());
+
+        // 3. Converter para DTO (agora o DTO inclui os dados do animal)
+        return meusInteresses.stream()
+                .map(InteresseResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+
+// ... (restante do código)
+
+
+    @Override
+    @Transactional // ✨ Garante que a gravação seja atômica
+    public void registrarInteresse(UUID animalId, UUID usuarioId) {
 
         Animais animal = animaisRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Animal não encontrado com o ID: " + animalId));
 
-        // 1. Encontre o PERFIL (AdotanteUsuarios) usando o ID do LOGIN (usuarioId)
-        AdotanteUsuarios adotante = adotanteUsuariosRepository.findByUsuarioId(usuarioId) // <--- CRIE ESTE MÉTODO
+        AdotanteUsuarios adotante = adotanteUsuariosRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil de adotante não encontrado para o usuário: " + usuarioId));
 
-        // 2. Verifique se este PERFIL já tem interesse
-        boolean jaInteressado = adocaoInteresseRepository.existsByAnimalIdAndUsuarioIdAndStatus(animalId, adotante.getId(), AdocaoStatus.PENDENTE);
-        if (jaInteressado) {
-            throw new IllegalStateException("Usuário já está na fila de espera para este animal.");
+        boolean jaExisteRegistro = adocaoInteresseRepository.existsByAnimalIdAndUsuarioId(animalId, adotante.getId());
+
+        if (jaExisteRegistro) {
+            // Retorna uma mensagem amigável para o frontend
+            throw new IllegalStateException("Você já enviou uma solicitação para este animal anteriormente.");
         }
 
-        // 3. Salve o interesse com o PERFIL correto
         AdocaoInteresse novoInteresse = new AdocaoInteresse();
         novoInteresse.setAnimal(animal);
-        novoInteresse.setUsuario(adotante); // <--- Anexe o objeto AdotanteUsuarios (Perfil)
+        novoInteresse.setUsuario(adotante);
+        // O status e data são definidos no @PrePersist da entidade, ou você pode setar aqui explicitamente:
+        novoInteresse.setStatus(AdocaoStatus.PENDENTE);
 
         adocaoInteresseRepository.save(novoInteresse);
     }
 
     @Override
-    public List<InteresseResponseDTO> listarInteressadosPorAnimal(UUID animalId) { // Parâmetro UUID
-        if (!animaisRepository.existsById(animalId)) { // existsById com UUID
+    @Transactional(readOnly = true) // ✨ CRUCIAL: Mantém a conexão aberta para carregar dados Lazy do usuário
+    public List<InteresseResponseDTO> listarInteressadosPorAnimal(UUID animalId) {
+        if (!animaisRepository.existsById(animalId)) {
             throw new EntityNotFoundException("Animal não encontrado com o ID: " + animalId);
         }
 
-        List<AdocaoInteresse> interesses = adocaoInteresseRepository.findByAnimalIdAndStatusOrderByDataDeCriacaoAsc(animalId, AdocaoStatus.PENDENTE);
+        // ✨ Usa a nova Query explícita
+        List<AdocaoInteresse> interesses = adocaoInteresseRepository.buscarInteressesPorAnimal(animalId, AdocaoStatus.PENDENTE);
 
         return interesses.stream()
-                .map(InteresseResponseDTO::new)
+                .map(InteresseResponseDTO::new) // Agora a conversão funcionará pois a transação está aberta
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void avaliarInteresse(UUID interesseId, AdocaoStatus novoStatus) { // Parâmetro UUID
+    @Transactional // ✨ Garante atualização segura
+    public void avaliarInteresse(UUID interesseId, AdocaoStatus novoStatus) {
         AdocaoInteresse interesse = adocaoInteresseRepository.findById(interesseId)
                 .orElseThrow(() -> new EntityNotFoundException("Interesse de adoção não encontrado com o ID: " + interesseId));
 
@@ -91,60 +115,50 @@ public class AdocaoServiceImpl implements AdocaoService {
             throw new IllegalArgumentException("Não é possível alterar o status para PENDENTE.");
         }
 
-        // 1. Lógica para APROVAÇÃO
-        // Verifica se houve uma transição para APROVADO (e se não estava APROVADO antes)
         boolean foiAprovado = novoStatus == AdocaoStatus.APROVADO && interesse.getStatus() != AdocaoStatus.APROVADO;
-
-        // 2. Lógica para REJEIÇÃO
-        // Verifica se houve uma transição para REPROVADO (e se não estava REPROVADO antes)
         boolean foiRejeitado = novoStatus == AdocaoStatus.REJEITADO && interesse.getStatus() != AdocaoStatus.REJEITADO;
 
-        // Atualiza o status e salva no banco de dados
         interesse.setStatus(novoStatus);
         adocaoInteresseRepository.save(interesse);
 
-        // Envio de E-mails:
-
         if (foiAprovado) {
-            // Método que você já deve ter:
             enviarNotificacaoAprovacao(interesse);
         }
 
-        // Novo bloco para enviar notificação de REJEIÇÃO
         if (foiRejeitado) {
-            enviarNotificacaoReprovacao(interesse); // 👈 NOVO MÉTODO
+            enviarNotificacaoReprovacao(interesse);
         }
     }
 
     public void enviarNotificacaoAprovacao(AdocaoInteresse interesse) {
-        AdotanteUsuarios adotante = interesse.getUsuario();
-        Usuario usuario = adotante.getUsuario();
-        Animais animal = interesse.getAnimal();
+        try {
+            AdotanteUsuarios adotante = interesse.getUsuario();
+            Usuario usuario = adotante.getUsuario();
+            Animais animal = interesse.getAnimal();
 
-        if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {
-            String title = "Parabéns! Sua adoção foi aprovada!";
-            String body = "Temos ótimas notícias, " + usuario.getName() + "! Seu interesse em adotar o(a) " + animal.getNome() + " foi aprovado";
-
-            notificationService.sendPushNotification(usuario.getFcmToken(), title, body);
-            log.info("Notificação de aprovação enviada para: {}", usuario.getEmail()); // Log ainda pode usar email como ID
-        } else {
-            log.warn("Usuário {} não possui FCM token para ser notificado.", usuario.getEmail());
+            if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {
+                String title = "Parabéns! Sua adoção foi aprovada!";
+                String body = "Temos ótimas notícias, " + usuario.getName() + "! Seu interesse em adotar o(a) " + animal.getNome() + " foi aprovado";
+                notificationService.sendPushNotification(usuario.getFcmToken(), title, body);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao enviar notificação de aprovação", e);
         }
     }
 
     public void enviarNotificacaoReprovacao(AdocaoInteresse interesse) {
-        AdotanteUsuarios adotante = interesse.getUsuario();
-        Usuario usuario = adotante.getUsuario();
-        Animais animal = interesse.getAnimal();
+        try {
+            AdotanteUsuarios adotante = interesse.getUsuario();
+            Usuario usuario = adotante.getUsuario();
+            Animais animal = interesse.getAnimal();
 
-        if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {
-            String title = "Sua solicitação foi reprovada";
-            String body = "Olá " + usuario.getName() + " infelizmente, seu interesse em adotar o(a) " + animal.getNome() + " foi reprovado dessa vez";
-
-            notificationService.sendPushNotification(usuario.getFcmToken(), title, body);
-            log.info("Notificação de reprovação enviada par: {}", usuario.getEmail());
-        } else {
-            log.warn("Usuário {} não possui FCM token para ser notificado.", usuario.getEmail());
+            if (usuario.getFcmToken() != null && !usuario.getFcmToken().isEmpty()) {
+                String title = "Atualização sobre sua adoção";
+                String body = "Olá " + usuario.getName() + ", houve uma atualização no seu processo de adoção do(a) " + animal.getNome() + ".";
+                notificationService.sendPushNotification(usuario.getFcmToken(), title, body);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao enviar notificação de reprovação", e);
         }
     }
 }

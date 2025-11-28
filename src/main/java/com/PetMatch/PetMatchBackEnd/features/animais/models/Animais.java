@@ -1,5 +1,6 @@
 package com.PetMatch.PetMatchBackEnd.features.animais.models;
 
+import com.PetMatch.PetMatchBackEnd.features.adocao.models.AdocaoInteresse;
 import com.PetMatch.PetMatchBackEnd.features.user.models.OngUsuarios;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -57,4 +58,7 @@ public class Animais {
 
     @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FotosAnimais> fotosAnimais = new ArrayList<>();
+
+    @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AdocaoInteresse> interesses;
 }

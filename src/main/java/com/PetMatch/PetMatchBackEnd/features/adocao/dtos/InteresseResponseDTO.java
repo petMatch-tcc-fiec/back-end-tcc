@@ -1,49 +1,77 @@
 package com.PetMatch.PetMatchBackEnd.features.adocao.dtos;
 
 import com.PetMatch.PetMatchBackEnd.features.adocao.models.AdocaoInteresse;
+import com.PetMatch.PetMatchBackEnd.features.animais.models.FotosAnimais;
+import com.PetMatch.PetMatchBackEnd.features.user.models.Usuario;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Setter
 @Getter
-@Schema(
-        name = "InteresseResponseDTO",
-        description = "Representa o interesse de um usuário em adotar um animal, com informações básicas do interessado."
-)
+@Schema(name = "InteresseResponseDTO", description = "Dados do interesse (inclui dados do Animal e do Usuário).")
 public class InteresseResponseDTO {
 
-    @Schema(
-            description = "Identificador único do interesse de adoção",
-            example = "550e8400-e29b-41d4-a716-446655440000"
-    )
     private UUID interesseId;
-
-    @Schema(
-            description = "Identificador único do usuário interessado",
-            example = "c84e180d-8c2d-4a3e-a98e-123456789abc"
-    )
     private UUID usuarioId;
-
-    @Schema(
-            description = "Nome do usuário que demonstrou interesse na adoção",
-            example = "Maria Silva"
-    )
     private String nomeUsuario;
-
-    @Schema(
-            description = "Data e hora em que o interesse foi registrado",
-            example = "2025-11-07T18:45:00"
-    )
+    private String emailUsuario;
     private LocalDateTime dataDeInteresse;
+    private String status;
+
+    // Objeto Animal aninhado
+    private AnimalResumoDTO animal;
 
     public InteresseResponseDTO(AdocaoInteresse interesse) {
         this.interesseId = interesse.getId();
-        this.usuarioId = interesse.getUsuario().getId();
-        this.nomeUsuario = interesse.getUsuario().getNomeAdotante();
-        this.dataDeInteresse = interesse.getDataDeCriacao();
+        this.dataDeInteresse = interesse.getDataDeCriacao(); // Ajustei para getDataCriacao se for o nome correto na entidade
+        this.status = interesse.getStatus() != null ? interesse.getStatus().toString() : "PENDENTE";
+
+        // Mapeia Usuário
+        if (interesse.getUsuario() != null && interesse.getUsuario().getUsuario() != null) {
+            Usuario usuarioEntity = interesse.getUsuario().getUsuario();
+            this.usuarioId = usuarioEntity.getId();
+            this.nomeUsuario = usuarioEntity.getName();
+            this.emailUsuario = usuarioEntity.getEmail();
+        } else {
+            this.nomeUsuario = "Usuário Desconhecido";
+        }
+
+        // Mapeia Animal (AGORA COM FOTOS E ID)
+        if (interesse.getAnimal() != null) {
+
+            // Lógica para recuperar a URL da primeira foto
+            String fotoUrl = null;
+            List<FotosAnimais> fotos = interesse.getAnimal().getFotosAnimais();
+
+            if (fotos != null && !fotos.isEmpty()) {
+                fotoUrl = fotos.get(0).getArquivoAnimal();
+            }
+
+            this.animal = new AnimalResumoDTO(
+                    interesse.getAnimal().getId(), // ✨ ID Adicionado aqui
+                    interesse.getAnimal().getNome(),
+                    interesse.getAnimal().getRaca(),
+                    interesse.getAnimal().getIdade() != null ? interesse.getAnimal().getIdade().toString() : "0",
+                    fotoUrl // ✨ URL real aqui
+            );
+        }
+    }
+
+    // DTO Interno para o Animal
+    @Data
+    @AllArgsConstructor
+    public static class AnimalResumoDTO {
+        private UUID id; // ✨ Campo ID Adicionado (Vital para o Front-end)
+        private String nome;
+        private String raca;
+        private String idade;
+        private String imagemUrl;
     }
 }

@@ -1,4 +1,4 @@
-package com.PetMatch.PetMatchBackEnd.features.animais.controller;
+package com.PetMatch.PetMatchBackEnd.features.animais.controllers;
 
 import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalRegisterDto;
 import com.PetMatch.PetMatchBackEnd.features.animais.models.dtos.AnimalResponseDto;
@@ -15,12 +15,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity; // Removido MediaType.MULTIPART
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+// Removido MultipartFile import
 
+import jakarta.validation.Valid; // Importante para validar o DTO
 import java.util.List;
 import java.util.UUID;
 
@@ -43,15 +43,14 @@ public class AnimaisController {
     )
     @GetMapping
     public ResponseEntity<List<AnimalResponseDto>> listarAnimais(
-            @AuthenticationPrincipal Usuario usuarioAutenticado // <-- 1. RECEBE O USUÁRIO LOGADO
+            @AuthenticationPrincipal Usuario usuarioAutenticado
     ) {
-        // 2. PASSA O USUÁRIO PARA O SERVICE FAZER A LÓGICA DE FILTRO
         return ResponseEntity.ok(animaisService.findAllAnimaisDto(usuarioAutenticado));
     }
 
     @Operation(
             summary = "Cadastrar novo animal",
-            description = "Cadastra um novo animal vinculado à ONG logada. Requer 'multipart/form-data'.",
+            description = "Cadastra um novo animal vinculado à ONG logada. Requer JSON com link da imagem.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Animal cadastrado com sucesso",
                             content = @Content(mediaType = "application/json",
@@ -60,17 +59,16 @@ public class AnimaisController {
                     @ApiResponse(responseCode = "403", description = "Acesso negado (não é ONG)")
             }
     )
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // <-- IMPORTANTE para upload
+    @PostMapping // ✨ REMOVIDO consumes = multipart/form-data
     public ResponseEntity<AnimalResponseDto> criarNovoAnimal(
-            @ModelAttribute AnimalRegisterDto dto, // <-- @ModelAttribute para form-data
-            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestBody @Valid AnimalRegisterDto dto, // ✨ MUDADO para @RequestBody (JSON)
             @AuthenticationPrincipal Usuario usuarioAutenticado) {
 
-        // Extrai ID e Perfil (exatamente como EventoController)
         UUID idDaOngLogada = usuarioAutenticado.getId();
         String perfilDaOng = usuarioAutenticado.getAccessLevel().name();
 
-        AnimalResponseDto novoAnimal = animaisService.create(dto, file, idDaOngLogada, perfilDaOng);
+        // ✨ Agora não passamos mais o arquivo, a URL vai dentro do DTO
+        AnimalResponseDto novoAnimal = animaisService.create(dto, idDaOngLogada, perfilDaOng);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoAnimal);
     }
 
@@ -89,11 +87,8 @@ public class AnimaisController {
     public ResponseEntity<AnimalResponseDto> buscarAnimalPorId(
             @Parameter(description = "ID do animal", example = "a3f1e6d5-7c2b-4a89-8ef1-123456789abc")
             @PathVariable UUID id,
-            @AuthenticationPrincipal Usuario usuarioAutenticado // <-- RECEBE O USUÁRIO LOGADO
+            @AuthenticationPrincipal Usuario usuarioAutenticado
     ) {
-        // PASSA O USUÁRIO E O ID PARA O SERVICE
-        // O Service tratará o 404 (se não existir) e o 403 (se não for dono)
-        // (Exatamente como no EventoController)
         return animaisService.findAnimalDtoById(id, usuarioAutenticado)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -117,7 +112,6 @@ public class AnimaisController {
             @RequestBody AnimalRegisterDto dto,
             @AuthenticationPrincipal Usuario usuarioAutenticado) {
 
-        // Extrai ID e Perfil
         UUID idUsuarioLogado = usuarioAutenticado.getId();
         String perfilUsuario = usuarioAutenticado.getAccessLevel().name();
 
@@ -141,7 +135,6 @@ public class AnimaisController {
             @PathVariable UUID id,
             @AuthenticationPrincipal Usuario usuarioAutenticado) {
 
-        // Extrai ID e Perfil (exatamente como EventoController)
         UUID idUsuarioLogado = usuarioAutenticado.getId();
         String perfilUsuario = usuarioAutenticado.getAccessLevel().name();
 

@@ -68,7 +68,6 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
             usuario.setAccessLevel(updatedUsuario.getAccessLevel());
             usuario.setPicture(updatedUsuario.getPicture());
 
-            // Re-criptografa a senha apenas se uma nova for fornecida
             if (updatedUsuario.getPassword() != null && !updatedUsuario.getPassword().isEmpty()) {
                 usuario.setPassword(PasswordEncryptor.encrypt(updatedUsuario.getPassword()));
             }
@@ -154,10 +153,13 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         }
         Usuario usuario = new Usuario();
         usuario.setEmail(registerAdminDto.getEmail());
+        // ✨ CORREÇÃO 1: Salva o nome no Usuário principal
+        usuario.setName(registerAdminDto.getName());
         usuario.setPassword(PasswordEncryptor.encrypt(registerAdminDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ADMIN);
         usuario.setState(RegisterState.USER_CREATED);
         Usuario savedUser = save(usuario);
+
         AdminUsuarios admin = new AdminUsuarios();
         admin.setUsuario(savedUser);
         admin.setNomeAdmin(registerAdminDto.getName());
@@ -165,6 +167,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         admin.setSenhaAdmin(PasswordEncryptor.encrypt(registerAdminDto.getPassword()));
         admin.setCpfOuCnpjAdmin(registerAdminDto.getCpfOuCnpj());
         AdminUsuarios savedAdmin = adminUsuariosRepository.save(admin);
+
         return CreatedUsuarioResponseDto.builder()
                 .id(String.valueOf(savedAdmin.getId()))
                 .userId(String.valueOf(savedUser.getId()))
@@ -177,15 +180,21 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         if(findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("O e-mail '" + email + "' já está cadastrado no sistema.");
         }
+
+        // 1. Cria Usuário de Login
         Usuario usuario = new Usuario();
         usuario.setEmail(registerAdotanteDto.getEmail());
+        // ✨ CORREÇÃO 2: O fio estava solto aqui! Agora salvamos o nome na tabela 'usuarios'
+        usuario.setName(registerAdotanteDto.getName());
         usuario.setPassword(PasswordEncryptor.encrypt(registerAdotanteDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ADOTANTE);
         usuario.setState(RegisterState.USER_CREATED);
         Usuario savedUser = save(usuario);
+
+        // 2. Cria Perfil de Adotante
         AdotanteUsuarios adotante = new AdotanteUsuarios();
         adotante.setUsuario(savedUser);
-        adotante.setNomeAdotante(registerAdotanteDto.getName());
+        adotante.setNomeAdotante(registerAdotanteDto.getName()); // Aqui já estava certo
         adotante.setEmailAdotante(registerAdotanteDto.getEmail());
         adotante.setSenhaAdotante(PasswordEncryptor.encrypt(registerAdotanteDto.getPassword()));
         adotante.setCpfAdotante(registerAdotanteDto.getCpf());
@@ -194,6 +203,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         adotante.setDescricaoOutrosAnimais(registerAdotanteDto.getDescricaoOutrosAnimais());
         adotante.setPreferencia(registerAdotanteDto.getPreferencia());
         AdotanteUsuarios savedAdotante = adotanteUsuariosRepository.save(adotante);
+
         return CreatedUsuarioResponseDto.builder()
                 .id(String.valueOf(savedAdotante.getId()))
                 .userId(String.valueOf(savedUser.getId()))
@@ -201,17 +211,30 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     }
 
     @Override
+    @Transactional // <--- 1. ADICIONE ESTA ANOTAÇÃO (Evita salvar usuário se der erro no CNPJ)
     public CreatedUsuarioResponseDto saveOng(RegisterOngDto registerOngDto) {
         String email = registerOngDto.getEmail();
+
+        // 2. ADICIONE ESTA VALIDAÇÃO (Impede o cadastro se CNPJ já existe)
+        // Nota: Certifique-se de ter adicionado 'boolean existsByCnpjOng(String cnpj);' no seu Repository
+        if(ongUsuariosRepository.existsByCnpjOng(registerOngDto.getCnpj())) {
+            throw new IllegalArgumentException("O CNPJ '" + registerOngDto.getCnpj() + "' já está cadastrado no sistema.");
+        }
+
         if(findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("O e-mail '" + email + "' já está cadastrado no sistema.");
         }
+
+        // 1. Cria Usuário de Login
         Usuario usuario = new Usuario();
         usuario.setEmail(registerOngDto.getEmail());
+        usuario.setName(registerOngDto.getName());
         usuario.setPassword(PasswordEncryptor.encrypt(registerOngDto.getPassword()));
         usuario.setAccessLevel(UserLevel.ONG);
         usuario.setState(RegisterState.USER_CREATED);
-        Usuario savedUser = save(usuario);
+        Usuario savedUser = save(usuario); // Se der erro no CNPJ lá embaixo, o @Transactional desfaz isso aqui
+
+        // 2. Cria Perfil de ONG
         OngUsuarios ong = new OngUsuarios();
         ong.setUsuario(savedUser);
         ong.setNomeFantasiaOng(registerOngDto.getName());
@@ -221,7 +244,9 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         ong.setTelefoneOng(registerOngDto.getTelefone());
         ong.setCelularOng(registerOngDto.getCelular());
         ong.setCnpjOng(registerOngDto.getCnpj());
+
         OngUsuarios savedOng = ongUsuariosRepository.save(ong);
+
         return CreatedUsuarioResponseDto.builder()
                 .id(String.valueOf(savedOng.getId()))
                 .userId(String.valueOf(savedUser.getId()))
@@ -246,6 +271,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
             OngUsuarios ong = ongUsuariosRepository.findByUsuario(usuario).orElseThrow();
             myUserDto = MyUserDto.builder().build();
             myUserDto.setCnpj(ong.getCnpjOng());
+            myUserDto.setNome(ong.getNomeFantasiaOng());
             myUserDto.setTipo("ONG");
         } else {
             AdotanteUsuarios adotanteUsuarios = adotanteUsuariosRepository.findByUsuario(usuario).orElseThrow();
@@ -260,16 +286,9 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     }
 
     public Usuario updateFcmToken(UUID userId, FcmTokenRequest request) {
-
-        // 1. Busca o usuário pelo ID
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
-
-        System.out.println(userId);
-        // 2. Atualiza o atributo fcmToken
         usuario.setFcmToken(request.getFcmToken());
-
-        // 3. Salva a alteração (o @Transactional garante que a persistência ocorra)
         return usuarioRepository.save(usuario);
     }
 
@@ -278,23 +297,17 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     public void createUsers(InputStream inputStream) {
         List<UsuarioCsvRepresentation> users = new ArrayList<>();
         try (Reader reader = new InputStreamReader(inputStream)) {
-
-            // Create a CsvToBean object from the Reader
             CsvToBean<UsuarioCsvRepresentation> csvToBean = new CsvToBeanBuilder(reader)
-                    .withType(UsuarioCsvRepresentation.class) // Specify the target bean class
-                    .withIgnoreLeadingWhiteSpace(true) // Clean up any extra spaces
-                    .withSkipLines(0) // Skips the header row if present
+                    .withType(UsuarioCsvRepresentation.class)
+                    .withIgnoreLeadingWhiteSpace(true)
+                    .withSkipLines(0)
                     .build();
-
-            // Parse the data and return a List of beans
             users = csvToBean.parse();
         } catch (Exception e) {
-            // Handle IO or CSV parsing exceptions
             throw new RuntimeException("Failed to parse CSV file: " + e.getMessage(), e);
         }
 
         try {
-
             for (UsuarioCsvRepresentation csvUser : users) {
                 Usuario usuario = new Usuario();
                 usuario.setEmail(csvUser.getEmail());
@@ -306,7 +319,6 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                 switch (level) {
                     case UserLevel.ADOTANTE:
                         AdotanteUsuarios adotante = new AdotanteUsuarios();
-
                         adotante.setUsuario(usuario);
                         adotante.setCpfAdotante(csvUser.getCpfAdotante());
                         adotante.setEnderecoAdotante(csvUser.getEnderecoAdotante());
@@ -317,12 +329,10 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                         break;
                     case UserLevel.ADMIN:
                         AdminUsuarios admin = new AdminUsuarios();
-
                         admin.setUsuario(usuario);
                         admin.setCpfOuCnpjAdmin(csvUser.getCnpjOuCnpjAdmin());
                         adminUsuariosRepository.save(admin);
                         break;
-
                     case UserLevel.ONG:
                         OngUsuarios ong = new OngUsuarios();
                         ong.setUsuario(usuario);
@@ -331,17 +341,13 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                         ong.setCelularOng(csvUser.getCelularOng());
                         ong.setCnpjOng(csvUser.getCnpjOng());
                         ongUsuariosRepository.save(ong);
-
                         break;
                     default:
                         break;
-
                 }
-
             }
         } catch (Exception ex) {
             throw new RuntimeException("Failed to parse CSV file: " + ex.getMessage(), ex);
-
         }
     }
 }

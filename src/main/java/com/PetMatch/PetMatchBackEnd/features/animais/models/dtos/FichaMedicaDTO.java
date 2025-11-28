@@ -10,8 +10,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FichaMedicaDTO {
-    // Note: Se sua Entidade FichaMedicaAnimal tem 'castrado', 'vacinado', 'doencasExistentes',
-    // este DTO não vai refletir 100% a Entidade. Se necessário, me envie a Entidade FichaMedicaAnimal.
+    private UUID idFicha;      // Necessário para o front saber se já existe
+    private UUID idAnimal;     // Necessário para vincular
     private String vacinas;
     private String historicoSaude;
 }

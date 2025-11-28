@@ -1,13 +1,13 @@
 package com.PetMatch.PetMatchBackEnd.features.animais.models.dtos;
 
-import com.PetMatch.PetMatchBackEnd.features.animais.models.FichaMedicaAnimal;
-import com.PetMatch.PetMatchBackEnd.features.animais.models.FotosAnimais;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
-import jakarta.validation.constraints.*;
+
 import java.util.List;
 
 @Getter
@@ -36,7 +36,7 @@ public class AnimalRegisterDto {
     @NotBlank(message = "Espécie é obrigatória")
     @Pattern(regexp = "^(Cachorro|Gato)$", message = "Espécie deve ser: Cachorro ou Gato")
     @Schema(description = "Espécie do animal (exemplo: cachorro, gato).", example = "Cachorro")
-    private String especie;
+    private String especie; 
 
     @Schema(description = "Raça do animal, se conhecida.", example = "Vira-lata")
     private String raca;
@@ -44,19 +44,15 @@ public class AnimalRegisterDto {
     @Schema(description = "Cor predominante do animal.", example = "Branco e marrom")
     private String cor;
 
-    @Schema(description = "Observações adicionais sobre o animal, como comportamento ou necessidades especiais.",
-            example = "Muito dócil e se dá bem com outros cães.")
+    @Schema(description = "Observações adicionais sobre o animal.", example = "Muito dócil.")
     private String observacoesAnimal;
 
-    // Dados simplificados da ONG
-    @Schema(description = "ONG responsável por este animal.")
+    // ✨ NOVO CAMPO: URL DA IMAGEM
+    @Schema(description = "Link da foto do animal (URL direta).", example = "https://i.imgur.com/foto.jpg")
+    private String imagemUrl;
+
+    // --- Campos de Resposta (Ignorados no cadastro, mas mantidos no DTO) ---
     private OngSimplificadaDTO ong;
-
-    // Dados médicos
-    @Schema(description = "Ficha médica do animal.")
     private FichaMedicaDTO fichaMedicaAnimal;
-
-    // Fotos
-    @Schema(description = "Lista de fotos associadas ao animal.")
     private List<FotoAnimalDTO> fotosAnimais;
 }

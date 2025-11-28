@@ -11,4 +11,6 @@ import java.util.UUID;
 @Repository
 public interface OngUsuariosRepository extends JpaRepository<OngUsuarios, UUID> {
     Optional<OngUsuarios> findByUsuario(Usuario usuario);
+
+    boolean existsByCnpjOng(String cnpj);
 }

@@ -2,14 +2,18 @@ package com.PetMatch.PetMatchBackEnd.features.animais.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
 @Builder
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "fichamedicaanimal")
 @Schema(
         name = "FichaMedicaAnimal",
